@@ -7,10 +7,11 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/TheGreatMate/Fantasy-WarRoom</Support>
   <Project>https://github.com/TheGreatMate/Fantasy-WarRoom</Project>
-  <Overview>Fantasy football draft companion. Set your league's scoring and roster format (or import it live from Sleeper), import rankings, and run a live draft board with pick-by-pick recommendations weighted by real roster needs. Can live-sync picks from an in-progress Sleeper draft. All draft state lives in the browser (localStorage) - nothing is stored server-side.</Overview>
+  <Overview>Fantasy football draft companion. Set your league's scoring and roster format (or import it live from Sleeper), import rankings, and run a live draft board with pick-by-pick recommendations weighted by real roster needs. Can live-sync picks from an in-progress Sleeper draft. Saved rankings sets are stored server-side under the Data path below, so they persist across restarts/updates and are shared across every device that hits this container. Live draft state itself stays in the browser.</Overview>
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:8934]/war-room.html</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/TheGreatMate/Fantasy-WarRoom/master/unraid-template.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/TheGreatMate/Fantasy-WarRoom/master/icon.png</Icon>
   <Config Name="WebUI Port" Target="8934" Default="8934" Mode="tcp" Description="Port to access War Room" Type="Port" Display="always" Required="true" Mask="false">8934</Config>
+  <Config Name="Data" Target="/app/data" Default="/mnt/user/appdata/fantasy-warroom" Mode="rw" Description="Saved rankings library (survives restarts/updates)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/fantasy-warroom</Config>
 </Container>

@@ -371,11 +371,24 @@ function saveState(){
 }
 
 var RANKING_LIBRARY_KEY = "warroom_ranking_library_v1";
-function loadRankingLibrary(){
+function loadRankingLibraryLocal(){
   try{ return JSON.parse(localStorage.getItem(RANKING_LIBRARY_KEY)) || []; }catch(e){ return []; }
 }
-function saveRankingLibrary(lib){
+function saveRankingLibraryLocal(lib){
   try{ localStorage.setItem(RANKING_LIBRARY_KEY, JSON.stringify(lib)); }catch(e){}
+}
+// Server-backed (survives restarts, shared across devices) with a localStorage fallback
+// for environments with no backend (e.g. the hosted claude.ai artifact).
+function loadRankingLibrary(){
+  return fetch("/api/rankings").then(function(r){
+    if(!r.ok) throw new Error("bad status");
+    return r.json();
+  }).catch(function(){ return loadRankingLibraryLocal(); });
+}
+function saveRankingLibrary(lib){
+  return fetch("/api/rankings", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(lib) })
+    .then(function(r){ if(!r.ok) throw new Error("bad status"); })
+    .catch(function(){ saveRankingLibraryLocal(lib); });
 }
 
 /* ============================== UTIL ============================== */
@@ -1146,9 +1159,12 @@ function renderStepImport(container){
     "Paste a rankings table (from a CSV, spreadsheet, or copied straight out of a browser table) or upload a file. Tab- and comma-separated both work."
   ]));
 
-  var library = loadRankingLibrary();
-  if(library.length){
-    container.appendChild(el("div",{class:"roster-subhead", style:"margin-top:0;"},["Your saved rankings"]));
+  var libHost = el("div",{});
+  container.appendChild(libHost);
+  loadRankingLibrary().then(function(library){
+    if(!library.length) return;
+    clear(libHost);
+    libHost.appendChild(el("div",{class:"roster-subhead", style:"margin-top:0;"},["Your saved rankings"]));
     var libList = el("div",{class:"ranking-lib"});
     library.forEach(function(set){
       libList.appendChild(el("div",{class:"ranking-lib-row"},[
@@ -1160,15 +1176,16 @@ function renderStepImport(container){
           el("button",{class:"btn btn-sm btn-primary", onclick:function(){ useSavedRankingSet(set); }},["Use →"]),
           el("button",{class:"btn btn-sm btn-ghost btn-danger-text", title:"Delete", onclick:function(){
             if(!confirm("Delete saved rankings \""+set.name+"\"? This can't be undone.")) return;
-            saveRankingLibrary(loadRankingLibrary().filter(function(s){ return s.id !== set.id; }));
-            renderStepImport(container);
+            loadRankingLibrary().then(function(lib){
+              return saveRankingLibrary(lib.filter(function(s){ return s.id !== set.id; }));
+            }).then(function(){ renderStepImport(container); });
           }},["Delete"])
         ])
       ]));
     });
-    container.appendChild(libList);
-    container.appendChild(el("div",{class:"divider-label"},["Or import new rankings"]));
-  }
+    libHost.appendChild(libList);
+    libHost.appendChild(el("div",{class:"divider-label"},["Or import new rankings"]));
+  });
 
   function useSavedRankingSet(set){
     state.players = set.players.map(function(p){
@@ -1310,10 +1327,11 @@ function renderStepImport(container){
     saveState();
 
     if(saveName){
-      var lib = loadRankingLibrary();
-      lib = lib.filter(function(s){ return s.name.toLowerCase() !== saveName.toLowerCase(); });
-      lib.unshift({ id: uid(), name: saveName, savedAt: Date.now(), count: players.length, players: players });
-      saveRankingLibrary(lib);
+      loadRankingLibrary().then(function(lib){
+        lib = lib.filter(function(s){ return s.name.toLowerCase() !== saveName.toLowerCase(); });
+        lib.unshift({ id: uid(), name: saveName, savedAt: Date.now(), count: players.length, players: players });
+        return saveRankingLibrary(lib);
+      });
     }
 
     state.setupStep = 3;

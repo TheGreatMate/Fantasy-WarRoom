@@ -4,4 +4,6 @@ services:
     container_name: fantasy-warroom
     ports:
       - "8934:8934"
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped

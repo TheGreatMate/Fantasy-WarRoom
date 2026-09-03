@@ -3,8 +3,38 @@ const fs = require('fs');
 const path = require('path');
 const root = __dirname;
 const port = 8934;
+const dataDir = path.join(root, 'data');
+const rankingsFile = path.join(dataDir, 'rankings.json');
+
+try { fs.mkdirSync(dataDir, { recursive: true }); } catch (e) {}
 
 http.createServer((req, res) => {
+  if (req.url === '/api/rankings' && req.method === 'GET') {
+    fs.readFile(rankingsFile, 'utf8', (err, data) => {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(err ? '[]' : data);
+    });
+    return;
+  }
+
+  if (req.url === '/api/rankings' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        JSON.parse(body); // validate before writing
+        fs.writeFile(rankingsFile, body, err => {
+          res.writeHead(err ? 500 : 200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: !err }));
+        });
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: 'invalid json' }));
+      }
+    });
+    return;
+  }
+
   let reqPath = decodeURIComponent(req.url.split('?')[0]);
   if (reqPath === '/' || reqPath === '') reqPath = '/war-room.html';
   let p = path.join(root, reqPath);
