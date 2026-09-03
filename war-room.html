@@ -250,6 +250,9 @@ tr:last-child td{border-bottom:none;}
 .board-pick .meta{display:flex;gap:5px;align-items:center;font-size:10.5px;color:var(--text-faint);}
 .pick-no{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);}
 .empty-cell{color:var(--text-faint);font-size:11px;}
+.cell-badge{display:inline-block;width:fit-content;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:1px 6px;border-radius:5px;margin-top:2px;}
+.badge-keeper{background:var(--qb-bg);color:var(--qb-fg);}
+.badge-trade{background:var(--accent-soft);color:var(--accent-strong);text-transform:none;font-weight:600;}
 
 /* ---------- Right rail ---------- */
 .rail{display:flex;flex-direction:column;gap:16px;position:sticky;top:88px;}
@@ -353,7 +356,8 @@ function defaultState(){
     sleeperSyncActive: false,
     sleeperDraftId: null,
     sleeperSyncError: null,
-    sleeperSyncNote: null
+    sleeperSyncNote: null,
+    tradedPicks: []
   };
 }
 
@@ -645,7 +649,7 @@ function nextPickOverallForTeam(teamIndex, afterOverall){
   return null;
 }
 
-function makePick(playerId, teamIndexOverride){
+function makePick(playerId, teamIndexOverride, isKeeper){
   var pick = currentPick();
   if(!pick) return;
   var player = playerById(playerId);
@@ -656,7 +660,7 @@ function makePick(playerId, teamIndexOverride){
   player.draftedOverall = pick.overall;
   state.draft.picks.push({
     overall: pick.overall, round: pick.round, pickInRound: pick.pickInRound,
-    teamIndex: teamIndex, playerId: playerId
+    teamIndex: teamIndex, playerId: playerId, isKeeper: !!isKeeper
   });
   state.draft.currentIndex++;
   saveState();
@@ -1493,30 +1497,59 @@ function stopSleeperSync(){
   saveState();
 }
 
-function refreshDynastyIntel(){
+function tradeInfoForCell(round, team){
+  if(!state.tradedPicks || !state.tradedPicks.length || team.rosterId == null) return null;
+  var trade = state.tradedPicks.find(function(t){ return t.round === round && t.roster_id === team.rosterId; });
+  if(!trade) return null;
+  var newOwner = state.teams.find(function(t){ return t.rosterId === trade.owner_id; });
+  return { toName: newOwner ? newOwner.name : ("roster "+trade.owner_id) };
+}
+
+function assignRosterIds(rosters){
+  state.teams.forEach(function(team){
+    if(!team.sleeperUserId) return;
+    var roster = rosters.find(function(r){ return r.owner_id === team.sleeperUserId; });
+    if(roster) team.rosterId = roster.roster_id;
+  });
+}
+
+function refreshLeagueIntel(){
   var lg = state.league;
   if(!lg._sleeperLeagueIdConfirmed) return Promise.resolve();
-  state.sleeperSyncNote = "Checking existing rosters…";
+  state.sleeperSyncNote = "Checking league data…";
   renderTopbar();
   return sleeperLiveFetch("/league/"+lg._sleeperLeagueIdConfirmed+"/rosters").then(function(rosters){
+    if(rosters) assignRosterIds(rosters);
+
+    var tradesPromise = sleeperLiveFetch("/league/"+lg._sleeperLeagueIdConfirmed+"/traded_picks").then(function(trades){
+      state.tradedPicks = trades || [];
+    });
+
     var hasRostered = rosters && rosters.some(function(r){ return r.players && r.players.length; });
-    if(!hasRostered){ state.sleeperSyncNote = null; renderTopbar(); return; }
-    state.sleeperSyncNote = "Checking existing rosters — fetching player database…";
-    renderTopbar();
-    return sleeperLiveFetch("/players/nfl", 20000).then(function(playerMap){
-      if(playerMap){
-        markOffBoardFromRosters(rosters, playerMap);
-        computeDynastyTeamIntel(rosters, playerMap);
-        saveState();
-      } else {
-        state.sleeperSyncError = "Couldn't check existing dynasty rosters — some already-rostered players may show as available until the next reload.";
-      }
+    var dynastyPromise;
+    if(hasRostered){
+      state.sleeperSyncNote = "Checking existing rosters — fetching player database…";
+      renderTopbar();
+      dynastyPromise = sleeperLiveFetch("/players/nfl", 20000).then(function(playerMap){
+        if(playerMap){
+          markOffBoardFromRosters(rosters, playerMap);
+          computeDynastyTeamIntel(rosters, playerMap);
+        } else {
+          state.sleeperSyncError = "Couldn't check existing dynasty rosters — some already-rostered players may show as available until the next reload.";
+        }
+      });
+    } else {
+      dynastyPromise = Promise.resolve();
+    }
+
+    return Promise.all([tradesPromise, dynastyPromise]).then(function(){
       state.sleeperSyncNote = null;
+      saveState();
       renderApp();
     });
   }).catch(function(){
     state.sleeperSyncNote = null;
-    state.sleeperSyncError = "Couldn't check existing dynasty rosters — some already-rostered players may show as available until the next reload.";
+    state.sleeperSyncError = "Couldn't refresh league data — trades/keepers/rosters may be out of date until the next reload.";
     renderApp();
   });
 }
@@ -1524,7 +1557,7 @@ function refreshDynastyIntel(){
 function ensureSleeperPolling(){
   if(!state.sleeperSyncActive || !state.sleeperDraftId) return;
   if(sleeperPollHandle) return;
-  refreshDynastyIntel().then(function(){
+  refreshLeagueIntel().then(function(){
     pollSleeperDraft();
     sleeperPollHandle = setInterval(pollSleeperDraft, 4000);
   });
@@ -1547,7 +1580,7 @@ function pollSleeperDraft(){
       if(!currentPick()) return;
       var player = matchOrCreatePlayerFromSleeperPick(sp);
       var teamIndex = clamp((sp.draft_slot||1) - 1, 0, state.teams.length - 1);
-      makePick(player.id, teamIndex);
+      makePick(player.id, teamIndex, sp.is_keeper === true);
     });
     if(state.draft.picks.length === before){
       // nothing applied even though Sleeper reported new picks — avoid a silent stall
@@ -1777,6 +1810,7 @@ function renderBoardGrid(container){
       var order = state.draft.order.find(function(o){ return o.round===r && o.teamIndex===team.index; });
       var pickRec = order ? state.draft.picks.find(function(p){ return p.overall === order.overall; }) : null;
       var isClock = pick && order && pick.overall === order.overall;
+      var trade = tradeInfoForCell(r, team);
       var cell;
       if(pickRec){
         var player = playerById(pickRec.playerId);
@@ -1784,12 +1818,15 @@ function renderBoardGrid(container){
           el("div",{class:"board-pick"},[
             el("span",{class:"pick-no"},["#"+order.overall]),
             el("span",{class:"nm"},[player?player.name:"—"]),
-            el("span",{class:"meta"},[player?el("span",{class:"pos-chip pos-"+player.pos},[player.pos]):null, player&&player.team?player.team:null])
+            el("span",{class:"meta"},[player?el("span",{class:"pos-chip pos-"+player.pos},[player.pos]):null, player&&player.team?player.team:null]),
+            pickRec.isKeeper ? el("span",{class:"cell-badge badge-keeper"},["Keeper"]) : null,
+            trade ? el("span",{class:"cell-badge badge-trade", title:"Pick right traded to "+trade.toName},["🔄 to "+trade.toName]) : null
           ])
         ]);
       } else {
         cell = el("td",{class:"board-cell"+(isClock?" on-clock":"")},[
-          order ? el("div",{class:"empty-cell"},["#"+order.overall + (isClock?" — on the clock":"")]) : ""
+          order ? el("div",{class:"empty-cell"},["#"+order.overall + (isClock?" — on the clock":"")]) : "",
+          trade ? el("div",{class:"cell-badge badge-trade", title:"Pick right traded to "+trade.toName},["🔄 to "+trade.toName]) : null
         ]);
       }
       tr.appendChild(cell);
