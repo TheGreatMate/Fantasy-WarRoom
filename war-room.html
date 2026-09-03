@@ -444,10 +444,11 @@ var FIELD_GUESSES = {
   name: ["player","name","player name","full name"],
   pos: ["pos","position"],
   team: ["team","tm","nfl team"],
-  rank: ["rank","overall rank","overall","ecr","rk"],
+  rank: ["rank","overall rank","overall","ecr","rk","consensus"],
   adp: ["adp","avg draft position","average draft position"],
   tier: ["tier"],
-  bye: ["bye","bye week"]
+  bye: ["bye","bye week"],
+  utilization: ["utilization score","utilization","usage score","usage","util"]
 };
 function guessColumn(headers, key){
   var guesses = FIELD_GUESSES[key];
@@ -744,12 +745,15 @@ function recommendationsForTeam(teamIndex, limit){
     var valueScore = 0;
     if(p.adp){ valueScore = clamp((p.adp - overall) / 12, -1, 1); }
 
+    var utilBonus = p.utilization != null ? clamp((p.utilization - 50) / 50, -1, 1) : 0;
+
     var ratio = (posAvailCount[p.pos]||0) / Math.max(demand[p.pos]||1, 1);
     var scarcityBonus = clamp((1.8 - ratio) / 1.8, 0, 1);
     var cliffSoon = scarcityBonus > 0.45 && picksUntilNext <= Math.max(demand[p.pos]||1,1) * 1.4;
 
-    var score = rankPct*0.45 + needBonus*0.25 + Math.max(valueScore,0)*0.15 + scarcityBonus*0.15
-                - Math.max(-valueScore,0)*0.08;
+    var score = rankPct*0.42 + needBonus*0.24 + Math.max(valueScore,0)*0.14 + scarcityBonus*0.12
+                + Math.max(utilBonus,0)*0.08
+                - Math.max(-valueScore,0)*0.08 - Math.max(-utilBonus,0)*0.03;
 
     var tags = [];
     if(idx === 0) tags.push({t:"Best available", cls:""});
@@ -762,6 +766,8 @@ function recommendationsForTeam(teamIndex, limit){
     if(p.adp && (p.adp - overall) >= 6) tags.push({t:"Value · ADP "+Math.round(p.adp), cls:"tag-value"});
     if(p.adp && (overall - p.adp) >= 8) tags.push({t:"Reach vs ADP "+Math.round(p.adp), cls:"tag-cliff"});
     if(cliffSoon) tags.push({t:p.pos+" cliff — "+(posAvailCount[p.pos]||0)+" left", cls:"tag-cliff"});
+    if(p.utilization != null && p.utilization >= 85) tags.push({t:"High usage (Util "+Math.round(p.utilization)+")", cls:"tag-value"});
+    else if(p.utilization != null && p.utilization <= 30) tags.push({t:"Low usage (Util "+Math.round(p.utilization)+")", cls:"tag-cliff"});
 
     return { player:p, score:score, tags:tags };
   });
@@ -1211,13 +1217,13 @@ function renderStepImport(container){
     var dataRows = rows.slice(1);
 
     var mapping = state.columnMap || {};
-    ["name","pos","team","rank","adp","tier","bye"].forEach(function(key){
+    ["name","pos","team","rank","adp","tier","bye","utilization"].forEach(function(key){
       if(mapping[key] === undefined || mapping[key] >= headers.length) mapping[key] = guessColumn(headers, key);
     });
     state.columnMap = mapping;
 
-    mapWrap.appendChild(el("div",{class:"map-grid"}, ["name","pos","team","rank","adp","tier","bye"].map(function(key){
-      var labelMap = {name:"Player name*",pos:"Position*",team:"NFL team",rank:"Rank",adp:"ADP",tier:"Tier",bye:"Bye week"};
+    mapWrap.appendChild(el("div",{class:"map-grid"}, ["name","pos","team","rank","adp","tier","bye","utilization"].map(function(key){
+      var labelMap = {name:"Player name*",pos:"Position*",team:"NFL team",rank:"Rank",adp:"ADP",tier:"Tier",bye:"Bye week",utilization:"Utilization score"};
       var sel = el("select",{onchange:function(e){ mapping[key] = parseInt(e.target.value,10); renderPreviewTable(); }},[
         el("option",{value:"-1"},["— none —"])
       ].concat(headers.map(function(h,i){
@@ -1247,7 +1253,7 @@ function renderStepImport(container){
       previewHost.appendChild(summary);
 
       var table = el("table",{},[
-        el("thead",{},[el("tr",{},["Player","Pos","Team","Rank","ADP","Tier","Bye"].map(function(h){return el("th",{},[h]);}))]),
+        el("thead",{},[el("tr",{},["Player","Pos","Team","Rank","ADP","Tier","Bye","Util"].map(function(h){return el("th",{},[h]);}))]),
         el("tbody",{}, dataRows.slice(0,8).map(function(r){
           return el("tr",{},[
             el("td",{},[mapping.name>-1 ? r[mapping.name] : ""]),
@@ -1256,7 +1262,8 @@ function renderStepImport(container){
             el("td",{class:"tabular"},[mapping.rank>-1 ? r[mapping.rank] : ""]),
             el("td",{class:"tabular"},[mapping.adp>-1 ? r[mapping.adp] : ""]),
             el("td",{class:"tabular"},[mapping.tier>-1 ? r[mapping.tier] : ""]),
-            el("td",{class:"tabular"},[mapping.bye>-1 ? r[mapping.bye] : ""])
+            el("td",{class:"tabular"},[mapping.bye>-1 ? r[mapping.bye] : ""]),
+            el("td",{class:"tabular"},[mapping.utilization>-1 ? r[mapping.utilization] : ""])
           ]);
         }))
       ]);
@@ -1281,6 +1288,7 @@ function renderStepImport(container){
       var rank = mapping.rank>-1 ? parseFloat(r[mapping.rank]) : (i+1);
       var adp = mapping.adp>-1 ? parseFloat(r[mapping.adp]) : null;
       var tier = mapping.tier>-1 ? parseFloat(r[mapping.tier]) : null;
+      var util = mapping.utilization>-1 ? parseFloat(r[mapping.utilization]) : null;
       return {
         id: uid(),
         name: name,
@@ -1290,6 +1298,7 @@ function renderStepImport(container){
         adp: (adp===null || isNaN(adp)) ? null : adp,
         tier: (tier===null || isNaN(tier)) ? null : tier,
         bye: mapping.bye>-1 ? (r[mapping.bye]||"").trim() : "",
+        utilization: (util===null || isNaN(util)) ? null : util,
         drafted: false,
         draftedOverall: null
       };
@@ -1676,7 +1685,7 @@ function renderPlayerPool(container){
     if(poolFilter.hideDrafted) list = list.filter(function(p){ return !p.drafted && !p.offBoard; });
 
     var table = el("table",{},[
-      el("thead",{},[el("tr",{},["Player","Pos","Team","Bye","Rank","ADP","Value","Tier",""].map(function(h){return el("th",{},[h]);}))])
+      el("thead",{},[el("tr",{},["Player","Pos","Team","Bye","Rank","ADP","Value","Tier","Util",""].map(function(h){return el("th",{},[h]);}))])
     ]);
     var tbody = el("tbody",{});
     var lastTierKey = null;
@@ -1685,7 +1694,7 @@ function renderPlayerPool(container){
       var tierKey = p.pos + "|" + tierVal;
       if(tierVal !== undefined && tierKey !== lastTierKey){
         var label = poolFilter.pos === "ALL" ? (p.pos + " · Tier " + tierVal) : ("Tier " + tierVal);
-        tbody.appendChild(el("tr",{class:"tier-row"},[el("td",{colspan:"9"},[label])]));
+        tbody.appendChild(el("tr",{class:"tier-row"},[el("td",{colspan:"10"},[label])]));
         lastTierKey = tierKey;
       }
       var delta = (p.adp && overall) ? Math.round(p.adp - overall) : null;
@@ -1704,6 +1713,7 @@ function renderPlayerPool(container){
         el("td",{class:"tabular"},[p.adp!=null?p.adp.toFixed(1):"—"]),
         deltaCell,
         el("td",{class:"tabular"},[tierVal!==undefined?String(tierVal):"—"]),
+        el("td",{class:"tabular "+(p.utilization==null?"delta-zero":p.utilization>=75?"delta-pos":p.utilization<=35?"delta-neg":"")},[p.utilization!=null?String(Math.round(p.utilization)):"—"]),
         el("td",{},[
           p.drafted
             ? el("span",{class:"help"},["Rd "+(pickRoundFor(p.draftedOverall))+" · "+teamNameForOverall(p.draftedOverall)])
