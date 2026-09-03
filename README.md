@@ -54,3 +54,7 @@ Template URL (for Unraid's template-from-URL flow, if your setup supports it):
 - Auction drafts aren't supported yet — snake and linear only.
 - Live Sleeper sync (auto-picks, league import, dynasty roster needs) needs the page to be able to reach `api.sleeper.app` directly from the browser. This works when self-hosted; a page embedded somewhere that blocks outbound requests will fall back to manual copy/paste import instead.
 - Draft-in-progress state lives in the browser (`localStorage`), scoped per device/browser. Saved rankings sets are the one thing stored server-side, so they're the only thing shared across devices.
+
+## License
+
+[AGPL-3.0](LICENSE).
