@@ -1,7 +1,7 @@
 services:
   war-room:
     build: .
-    container_name: war-room
+    container_name: fantasy-warroom
     ports:
       - "8934:8934"
     restart: unless-stopped
