@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>war-room</Name>
+  <Repository>ghcr.io/thegreatmate/war-room:latest</Repository>
+  <Registry>https://ghcr.io</Registry>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/TheGreatMate/war-room</Support>
+  <Project>https://github.com/TheGreatMate/war-room</Project>
+  <Overview>Fantasy football draft companion. Set your league's scoring and roster format (or import it live from Sleeper), import rankings, and run a live draft board with pick-by-pick recommendations weighted by real roster needs. Can live-sync picks from an in-progress Sleeper draft. All draft state lives in the browser (localStorage) - nothing is stored server-side.</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8934]/war-room.html</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/TheGreatMate/war-room/master/unraid-template.xml</TemplateURL>
+  <Icon></Icon>
+  <Config Name="WebUI Port" Target="8934" Default="8934" Mode="tcp" Description="Port to access War Room" Type="Port" Display="always" Required="true" Mask="false">8934</Config>
+</Container>
