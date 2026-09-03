@@ -1,0 +1,1817 @@
+<title>War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F3; --surface:#FFFFFF; --surface-2:#F5F7F9; --surface-3:#FBFCFD;
+  --border:#D7DCE2; --border-strong:#B9C1C9;
+  --text:#171B21; --text-muted:#5B6572; --text-faint:#8992A0;
+  --accent:#C97A1E; --accent-ink:#2A1600; --accent-soft:#FBEBD6; --accent-strong:#A8630F;
+  --good:#1F8A55; --good-soft:#E4F5EC;
+  --risk:#B23A25; --risk-soft:#FBE7E1;
+  --qb-bg:#EDEBFB; --qb-fg:#5B4FC4;
+  --rb-bg:#E3F5EC; --rb-fg:#1F8A55;
+  --wr-bg:#E5EFFB; --wr-fg:#2B6CB0;
+  --te-bg:#FBE8DE; --te-fg:#B1512A;
+  --k-bg:#F0F1F3; --k-fg:#5B6572;
+  --dst-bg:#F5E8ED; --dst-fg:#9B3D55;
+  --flex-bg:#F0F1F3; --flex-fg:#5B6572;
+  --shadow:0 1px 2px rgba(23,27,33,.06), 0 6px 20px -8px rgba(23,27,33,.12);
+  --font-display:"Big Shoulders Display","Arial Narrow",sans-serif;
+  --font-body:"Public Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151B; --surface:#191D25; --surface-2:#1F242D; --surface-3:#171B22;
+    --border:#2B313B; --border-strong:#3A424E;
+    --text:#E7E9EC; --text-muted:#9AA3AF; --text-faint:#6B7480;
+    --accent:#E3A03D; --accent-ink:#1A0F00; --accent-soft:#3A2A10; --accent-strong:#F0B15C;
+    --good:#3FBE86; --good-soft:#163829;
+    --risk:#E38267; --risk-soft:#3A1F19;
+    --qb-bg:#2B2A45; --qb-fg:#B5ADEF;
+    --rb-bg:#173A2C; --rb-fg:#5FD3A0;
+    --wr-bg:#1B2E45; --wr-fg:#7FB1E8;
+    --te-bg:#3A2519; --te-fg:#E39867;
+    --k-bg:#232830; --k-fg:#9AA3AF;
+    --dst-bg:#3A2129; --dst-fg:#E38DA3;
+    --flex-bg:#232830; --flex-fg:#9AA3AF;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151B; --surface:#191D25; --surface-2:#1F242D; --surface-3:#171B22;
+  --border:#2B313B; --border-strong:#3A424E;
+  --text:#E7E9EC; --text-muted:#9AA3AF; --text-faint:#6B7480;
+  --accent:#E3A03D; --accent-ink:#1A0F00; --accent-soft:#3A2A10; --accent-strong:#F0B15C;
+  --good:#3FBE86; --good-soft:#163829;
+  --risk:#E38267; --risk-soft:#3A1F19;
+  --qb-bg:#2B2A45; --qb-fg:#B5ADEF;
+  --rb-bg:#173A2C; --rb-fg:#5FD3A0;
+  --wr-bg:#1B2E45; --wr-fg:#7FB1E8;
+  --te-bg:#3A2519; --te-fg:#E39867;
+  --k-bg:#232830; --k-fg:#9AA3AF;
+  --dst-bg:#3A2129; --dst-fg:#E38DA3;
+  --flex-bg:#232830; --flex-fg:#9AA3AF;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font-body);
+  font-size:14px; line-height:1.5; min-height:100%;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:.01em;text-wrap:balance;margin:0;}
+button, input, select, textarea{font-family:inherit;font-size:inherit;color:inherit;}
+button{cursor:pointer;}
+a{color:var(--accent-strong);}
+::selection{background:var(--accent-soft);color:var(--accent-ink);}
+.tabular{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+
+.app{max-width:1440px;margin:0 auto;padding:0 20px 48px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:40; background:var(--surface); border-bottom:1px solid var(--border);
+  padding:12px 20px; margin:0 0 24px;
+}
+.topbar-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.brand{display:flex;align-items:baseline;gap:8px;flex-shrink:0;}
+.brand-mark{font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:.02em;}
+.brand-mark .accent{color:var(--accent-strong);}
+.brand-sub{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+.clock{
+  display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:10px;padding:8px 16px;flex:1;min-width:280px;
+}
+.clock-stat{display:flex;flex-direction:column;gap:1px;}
+.clock-stat .label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);}
+.clock-stat .value{font-family:var(--font-mono);font-weight:600;font-size:15px;}
+.clock-team{display:flex;align-items:center;gap:8px;margin-left:auto;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);}
+.clock-team.on-user{background:var(--accent);border-color:var(--accent-strong);color:var(--accent-ink);}
+.clock-team.on-user:not([data-static]){animation:pulse 2.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);}50%{box-shadow:0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent);}}
+.clock-team .name{font-family:var(--font-display);font-weight:700;font-size:16px;}
+.sync-pill{display:flex;align-items:center;gap:10px;padding:5px 6px 5px 12px;border-radius:8px;background:var(--good-soft);color:var(--good);font-size:12px;font-weight:600;white-space:nowrap;}
+.sync-pill.warn{background:var(--risk-soft);color:var(--risk);}
+.sync-pill .btn{color:inherit;}
+.topbar-actions{display:flex;gap:8px;flex-shrink:0;}
+
+.btn{
+  border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text);
+  padding:8px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;
+  transition:background .12s, border-color .12s;
+}
+.btn:hover{background:var(--surface-2);}
+.btn-primary{background:var(--accent);border-color:var(--accent-strong);color:var(--accent-ink);}
+.btn-primary:hover{background:var(--accent-strong);}
+.btn-ghost{border-color:transparent;background:transparent;}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:7px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-danger-text{color:var(--risk);}
+
+/* ---------- Cards / sections ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);}
+.card-pad{padding:22px 24px;}
+.section-title{font-size:20px;margin-bottom:4px;}
+.section-sub{color:var(--text-muted);font-size:13px;margin-bottom:18px;}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-strong);font-weight:700;margin-bottom:6px;}
+
+/* ---------- Setup wizard ---------- */
+.wizard{max-width:820px;margin:0 auto;}
+.steps{display:flex;gap:10px;margin-bottom:22px;}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-faint);font-weight:600;}
+.step-num{width:22px;height:22px;border-radius:50%;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;}
+.step.active{color:var(--text);}
+.step.active .step-num{background:var(--accent);border-color:var(--accent-strong);color:var(--accent-ink);}
+.step.done .step-num{background:var(--good);border-color:var(--good);color:#fff;}
+
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 16px;margin-bottom:18px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;font-weight:600;color:var(--text-muted);}
+.field input[type=text], .field input[type=number], .field select{
+  border:1px solid var(--border-strong);background:var(--surface-3);border-radius:8px;padding:8px 10px;color:var(--text);
+}
+.field input[type=number]{width:100%;font-family:var(--font-mono);}
+.help{font-size:11px;color:var(--text-faint);}
+
+.radio-row{display:flex;gap:8px;flex-wrap:wrap;}
+.radio-chip{border:1px solid var(--border-strong);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;background:var(--surface-3);}
+.radio-chip input{position:absolute;opacity:0;pointer-events:none;}
+.radio-chip.checked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+:root[data-theme="dark"] .radio-chip.checked, .radio-chip.checked{color:var(--text);}
+
+.roster-builder{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:10px;}
+.roster-slot-ctl{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface-2);display:flex;flex-direction:column;gap:6px;}
+.roster-slot-ctl .slot-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}
+.stepper{display:flex;align-items:center;gap:6px;}
+.stepper button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface);font-weight:700;}
+.stepper .n{width:28px;text-align:center;font-family:var(--font-mono);font-weight:600;}
+.roster-total{font-size:12px;color:var(--text-muted);margin-top:2px;}
+
+.teams-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:6px;}
+.team-row{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--surface-3);}
+.team-row input[type=text]{flex:1;border:none;background:transparent;padding:4px 2px;min-width:0;}
+.team-row.is-you{border-color:var(--accent);background:var(--accent-soft);}
+.you-radio{flex-shrink:0;width:16px;height:16px;accent-color:var(--accent-strong);}
+
+.wizard-nav{display:flex;justify-content:space-between;margin-top:22px;}
+
+.subcard{border:1px solid var(--border);border-radius:12px;background:var(--surface-2);padding:16px 18px 18px;margin-bottom:22px;}
+.subcard-head{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
+.sleeper-mark{width:22px;height:22px;border-radius:6px;background:#5A67F0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px;flex-shrink:0;}
+.subcard-title{font-family:var(--font-display);font-weight:800;font-size:15px;}
+.sleeper-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin:12px 0 10px;}
+.sleeper-row .field{flex:1;min-width:180px;margin-bottom:0;}
+.sleeper-paste{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;}
+.sleeper-paste textarea{flex:1;min-width:220px;min-height:64px;border:1px solid var(--border-strong);background:var(--surface-3);border-radius:8px;padding:8px 10px;font-family:var(--font-mono);font-size:11.5px;color:var(--text);resize:vertical;}
+.import-msg{font-size:12.5px;border-radius:8px;padding:8px 12px;margin-top:10px;}
+.import-msg.ok{background:var(--good-soft);color:var(--good);}
+.import-msg.err{background:var(--risk-soft);color:var(--risk);}
+.divider-label{display:flex;align-items:center;gap:12px;color:var(--text-faint);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:4px 0 20px;}
+.divider-label::before,.divider-label::after{content:"";flex:1;height:1px;background:var(--border);}
+
+/* ---------- Import ---------- */
+textarea.csv-input{width:100%;min-height:140px;border:1px solid var(--border-strong);background:var(--surface-3);border-radius:10px;padding:12px;font-family:var(--font-mono);font-size:12px;resize:vertical;color:var(--text);}
+.import-row{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.file-btn{position:relative;overflow:hidden;}
+.file-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:16px 0;}
+.map-field select{width:100%;}
+.preview-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin-top:8px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surface-2);white-space:nowrap;position:sticky;top:0;}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.import-summary{display:flex;gap:18px;margin:14px 0;flex-wrap:wrap;}
+.stat-pill{display:flex;flex-direction:column;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:90px;}
+.stat-pill .n{font-family:var(--font-display);font-weight:800;font-size:22px;}
+.stat-pill .l{font-size:10.5px;text-transform:uppercase;color:var(--text-faint);letter-spacing:.06em;}
+
+/* ---------- Draft layout ---------- */
+.draft-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start;}
+.draft-main{min-width:0;}
+@media (max-width:980px){.draft-layout{grid-template-columns:1fr;}}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.tab{padding:9px 4px;margin-right:18px;font-weight:700;font-size:14px;color:var(--text-faint);border-bottom:2px solid transparent;background:none;border-radius:0;}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);}
+
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.search-input{flex:1;min-width:160px;border:1px solid var(--border-strong);background:var(--surface-3);border-radius:8px;padding:8px 12px;}
+.pos-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.pos-filter{border:1px solid var(--border-strong);background:var(--surface);border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;}
+.pos-filter.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.check-inline{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);}
+
+.pos-chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.02em;}
+.pos-QB{background:var(--qb-bg);color:var(--qb-fg);}
+.pos-RB{background:var(--rb-bg);color:var(--rb-fg);}
+.pos-WR{background:var(--wr-bg);color:var(--wr-fg);}
+.pos-TE{background:var(--te-bg);color:var(--te-fg);}
+.pos-K{background:var(--k-bg);color:var(--k-fg);}
+.pos-DST{background:var(--dst-bg);color:var(--dst-fg);}
+.pos-FLEX,.pos-SFLEX,.pos-BN{background:var(--flex-bg);color:var(--flex-fg);}
+
+.tier-row td{background:var(--surface-2);font-family:var(--font-display);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:6px 10px;border-bottom:1px solid var(--border);}
+.player-row.drafted{opacity:.4;}
+.player-row td{white-space:nowrap;}
+.player-name{font-weight:700;}
+.player-team{color:var(--text-faint);font-size:11.5px;margin-left:4px;}
+.delta-pos{color:var(--good);font-family:var(--font-mono);font-weight:600;}
+.delta-neg{color:var(--risk);font-family:var(--font-mono);font-weight:600;}
+.delta-zero{color:var(--text-faint);font-family:var(--font-mono);}
+
+.board-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
+.board-grid{border-collapse:separate;border-spacing:0;min-width:100%;}
+.board-grid th{position:sticky;top:0;z-index:2;}
+.board-grid th.rnd-col{position:sticky;left:0;z-index:3;background:var(--surface-2);}
+.board-grid td.rnd-col{position:sticky;left:0;background:var(--surface-2);font-family:var(--font-mono);color:var(--text-faint);font-weight:600;z-index:1;}
+.board-grid th.team-col{min-width:128px;}
+.board-cell{min-width:128px;padding:6px 8px;vertical-align:top;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.board-cell.filled{background:var(--surface-3);}
+.board-cell.on-clock{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent);}
+.board-pick{display:flex;flex-direction:column;gap:2px;}
+.board-pick .nm{font-weight:700;font-size:12px;}
+.board-pick .meta{display:flex;gap:5px;align-items:center;font-size:10.5px;color:var(--text-faint);}
+.pick-no{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);}
+.empty-cell{color:var(--text-faint);font-size:11px;}
+
+/* ---------- Right rail ---------- */
+.rail{display:flex;flex-direction:column;gap:16px;position:sticky;top:88px;}
+.rec-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface-2);display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.rec-card:last-child{margin-bottom:0;}
+.rec-top{display:flex;align-items:center;gap:8px;}
+.rec-rank{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--text-faint);width:22px;}
+.rec-name{font-weight:700;font-size:14px;flex:1;}
+.rec-why{display:flex;flex-wrap:wrap;gap:5px;}
+.why-tag{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);}
+.why-tag.tag-value{color:var(--good);border-color:color-mix(in srgb, var(--good) 40%, var(--border));}
+.why-tag.tag-cliff{color:var(--risk);border-color:color-mix(in srgb, var(--risk) 40%, var(--border));}
+.rec-draft-btn{align-self:flex-start;margin-top:2px;}
+
+.roster-mini{display:flex;flex-direction:column;gap:5px;}
+.roster-mini-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:7px;}
+.roster-mini-row.open{background:var(--surface-2);}
+.roster-mini-row .slot{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);width:44px;flex-shrink:0;}
+.roster-mini-row .who{font-size:12.5px;font-weight:600;flex:1;}
+.roster-mini-row.open .who{color:var(--text-faint);font-weight:500;}
+
+.empty-state{text-align:center;padding:30px 10px;color:var(--text-faint);font-size:13px;}
+.legend-note{font-size:11.5px;color:var(--text-faint);line-height:1.6;}
+
+.need-grid{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.need-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:7px;background:var(--surface-2);}
+.need-row .slot{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);width:32px;flex-shrink:0;}
+.need-row .count{font-size:12.5px;font-weight:600;flex:1;font-family:var(--font-mono);}
+.need-pill{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+.need-pill.critical{background:var(--risk-soft);color:var(--risk);}
+.need-pill.thin{background:var(--accent-soft);color:var(--accent-strong);}
+.need-pill.ok{background:var(--good-soft);color:var(--good);}
+.roster-subhead{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:700;margin:14px 0 6px;}
+
+.resume-banner{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap;}
+
+@media (max-width:640px){
+  .app{padding:0 12px 32px;}
+  .clock{min-width:0;}
+  .clock-stat .value{font-size:13px;}
+  .rail{position:static;}
+}
+</style>
+
+<div class="topbar" id="topbar" hidden>
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">War<span class="accent">Room</span></div>
+    </div>
+    <div class="clock" id="clockBar"></div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" id="btnUndo">Undo Pick</button>
+      <button class="btn btn-sm btn-ghost" id="btnSettings">League Settings</button>
+      <button class="btn btn-sm btn-ghost btn-danger-text" id="btnReset">Reset Draft</button>
+      <button class="btn btn-sm btn-ghost btn-danger-text" id="btnNewDraft">New Draft…</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <div id="view-setup"></div>
+  <div id="view-draft" hidden></div>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================== STATE ============================== */
+var STORAGE_KEY = "warroom_state_v3";
+var POSITIONS = ["QB","RB","WR","TE","K","DST"];
+var FLEX_ELIGIBLE = ["RB","WR","TE"];
+var SFLEX_ELIGIBLE = ["QB","RB","WR","TE"];
+
+function defaultLeague(){
+  return {
+    name: "My League",
+    numTeams: 10,
+    scoring: "ppr",
+    customPPR: 0.5,
+    roster: { QB:1, RB:2, WR:2, TE:1, FLEX:1, SFLEX:0, K:1, DST:1, BENCH:6 },
+    draftType: "snake",
+    trr: false,
+    userTeamIndex: 0
+  };
+}
+
+function defaultState(){
+  return {
+    screen: "setup",          // setup | draft
+    setupStep: 1,             // 1 league, 2 import
+    league: defaultLeague(),
+    teams: null,               // built on start
+    players: [],
+    columnMap: null,
+    rawCsvPreview: null,
+    draft: null,                // { order, currentIndex, picks: [] }
+    sleeperSyncActive: false,
+    sleeperDraftId: null,
+    sleeperSyncError: null,
+    sleeperSyncNote: null
+  };
+}
+
+var state = null;
+
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* ============================== UTIL ============================== */
+function el(tag, attrs, children){
+  var e = document.createElement(tag);
+  attrs = attrs || {};
+  for(var k in attrs){
+    if(k === "class") e.className = attrs[k];
+    else if(k === "html") e.innerHTML = attrs[k];
+    else if(k.indexOf("on") === 0 && typeof attrs[k] === "function") e.addEventListener(k.slice(2), attrs[k]);
+    else if(attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+  }
+  children = children || [];
+  children.forEach(function(c){
+    if(c === null || c === undefined) return;
+    if(typeof c === "string" || typeof c === "number") e.appendChild(document.createTextNode(String(c)));
+    else e.appendChild(c);
+  });
+  return e;
+}
+function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+function esc(s){ return String(s == null ? "" : s); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+function normalizePos(p){
+  if(!p) return "";
+  p = String(p).trim().toUpperCase();
+  if(p === "DEF" || p === "D/ST" || p === "D-ST") return "DST";
+  if(p === "PK") return "K";
+  if(p.indexOf("/") > -1) p = p.split("/")[0];
+  return p;
+}
+
+/* ============================== CSV PARSING ============================== */
+function detectDelimiter(text){
+  var firstLine = text.split(/\r?\n/)[0] || "";
+  var tabs = (firstLine.match(/\t/g) || []).length;
+  var commas = (firstLine.match(/,/g) || []).length;
+  return tabs > commas ? "\t" : ",";
+}
+function parseDelimited(text, delim){
+  var rows = [];
+  var row = [];
+  var field = "";
+  var inQuotes = false;
+  text = text.replace(/\r\n/g, "\n");
+  for(var i=0;i<text.length;i++){
+    var c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === delim){ row.push(field); field = ""; }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(function(r){ return r.length > 1 || (r[0] && r[0].trim() !== ""); });
+}
+
+var FIELD_GUESSES = {
+  name: ["player","name","player name","full name"],
+  pos: ["pos","position"],
+  team: ["team","tm","nfl team"],
+  rank: ["rank","overall rank","overall","ecr","rk"],
+  adp: ["adp","avg draft position","average draft position"],
+  tier: ["tier"],
+  bye: ["bye","bye week"]
+};
+function guessColumn(headers, key){
+  var guesses = FIELD_GUESSES[key];
+  var lower = headers.map(function(h){ return (h||"").trim().toLowerCase(); });
+  for(var g=0; g<guesses.length; g++){
+    var idx = lower.indexOf(guesses[g]);
+    if(idx > -1) return idx;
+  }
+  for(var i=0;i<lower.length;i++){
+    for(var g2=0; g2<guesses.length; g2++){
+      if(lower[i].indexOf(guesses[g2]) > -1) return i;
+    }
+  }
+  return -1;
+}
+
+/* ============================== SLEEPER IMPORT ============================== */
+var SLEEPER_SLOT_MAP = { QB:"QB", RB:"RB", WR:"WR", TE:"TE", K:"K", DEF:"DST", FLEX:"FLEX", WRRB_FLEX:"FLEX", REC_FLEX:"FLEX", SUPER_FLEX:"SFLEX", BN:"BENCH" };
+
+function parseSleeperLeagueObject(json){
+  if(!json || typeof json.total_rosters !== "number" || !Array.isArray(json.roster_positions)){
+    return { ok:false, error:"That doesn't look like a Sleeper league object (missing total_rosters / roster_positions)." };
+  }
+  var roster = { QB:0, RB:0, WR:0, TE:0, FLEX:0, SFLEX:0, K:0, DST:0, BENCH:0 };
+  var skipped = [];
+  json.roster_positions.forEach(function(code){
+    var mapped = SLEEPER_SLOT_MAP[code];
+    if(mapped) roster[mapped]++;
+    else if(code !== "IR" && code !== "TAXI") skipped.push(code);
+  });
+  var rec = (json.scoring_settings && typeof json.scoring_settings.rec === "number") ? json.scoring_settings.rec : 0;
+  var scoring, customPPR;
+  if(rec === 0) scoring = "standard";
+  else if(rec === 0.5) scoring = "half";
+  else if(rec === 1) scoring = "ppr";
+  else { scoring = "custom"; customPPR = rec; }
+  return {
+    ok:true,
+    name: json.name || null,
+    leagueId: json.league_id || null,
+    draftId: json.draft_id || null,
+    numTeams: clamp(json.total_rosters, 2, 24),
+    roster: roster,
+    scoring: scoring,
+    customPPR: customPPR,
+    skipped: skipped
+  };
+}
+function parseSleeperLeagueJSON(text){
+  var json;
+  try{ json = JSON.parse(text); }
+  catch(e){ return { ok:false, error:"That didn't parse as JSON — make sure you copied the entire response from the Sleeper API tab." }; }
+  return parseSleeperLeagueObject(json);
+}
+
+function parseSleeperUsersArray(json, matchUserId, yourUsername){
+  if(!Array.isArray(json)){
+    return { ok:false, error:"That doesn't look like a Sleeper users list (expected an array)." };
+  }
+  var names = json.map(function(u){
+    return { name: (u.metadata && u.metadata.team_name) ? u.metadata.team_name : (u.display_name || "Team"), display_name: u.display_name || "", user_id: u.user_id || "" };
+  });
+  var youIndex = -1;
+  if(matchUserId){
+    youIndex = names.findIndex(function(n){ return n.user_id === matchUserId; });
+  } else if(yourUsername && yourUsername.trim()){
+    var target = yourUsername.trim().toLowerCase();
+    youIndex = names.findIndex(function(n){ return n.display_name.toLowerCase() === target; });
+  }
+  return { ok:true, names: names.map(function(n){ return n.name; }), youIndex: youIndex };
+}
+function parseSleeperUsersJSON(text, yourUsername){
+  var json;
+  try{ json = JSON.parse(text); }
+  catch(e){ return { ok:false, error:"That didn't parse as JSON — make sure you copied the entire response from the Sleeper API tab." }; }
+  return parseSleeperUsersArray(json, null, yourUsername);
+}
+
+function defaultSleeperSeason(){
+  var now = new Date();
+  var y = now.getFullYear();
+  return String(now.getMonth() >= 1 ? y : y - 1); // Feb onward = current year's season
+}
+function sleeperLiveFetch(path, timeoutMs){
+  return new Promise(function(resolve){
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); resolve(null); }, timeoutMs || 6000);
+    fetch("https://api.sleeper.app/v1"+path, ctrl ? {signal: ctrl.signal} : {})
+      .then(function(res){ clearTimeout(timer); return res.ok ? res.json() : null; })
+      .then(function(data){ resolve(data); })
+      .catch(function(){ clearTimeout(timer); resolve(null); });
+  });
+}
+
+/* ============================== DRAFT LOGIC ============================== */
+function rosterSlotList(roster){
+  var slots = [];
+  function add(type, count){ for(var i=0;i<count;i++) slots.push(type); }
+  add("QB", roster.QB); add("RB", roster.RB); add("WR", roster.WR); add("TE", roster.TE);
+  add("FLEX", roster.FLEX); add("SFLEX", roster.SFLEX);
+  add("K", roster.K); add("DST", roster.DST); add("BENCH", roster.BENCH);
+  return slots;
+}
+function totalRounds(league){ return rosterSlotList(league.roster).length; }
+
+function buildDraftOrder(numTeams, rounds, draftType, trr){
+  var order = [];
+  for(var r=1; r<=rounds; r++){
+    var reverse;
+    if(draftType === "linear") reverse = false;
+    else if(!trr) reverse = (r % 2 === 0);
+    else {
+      if(r === 1) reverse = false;
+      else if(r === 2) reverse = true;
+      else if(r === 3) reverse = true;
+      else reverse = (r % 2 === 1);
+    }
+    var seq = [];
+    for(var t=0;t<numTeams;t++) seq.push(t);
+    if(reverse) seq.reverse();
+    for(var i=0;i<seq.length;i++){
+      order.push({ round:r, pickInRound:i+1, overall: order.length+1, teamIndex: seq[i] });
+    }
+  }
+  return order;
+}
+
+function needForSlot(slot){ return slot; }
+function slotAcceptsPos(slot, pos){
+  if(slot === "FLEX") return FLEX_ELIGIBLE.indexOf(pos) > -1;
+  if(slot === "SFLEX") return SFLEX_ELIGIBLE.indexOf(pos) > -1;
+  if(slot === "BENCH") return true;
+  return slot === pos;
+}
+// Replays a team's picks in draft order and greedily fills slots. Returns {slots:[{type,player|null}], openSlots:[type,...]}
+function computeTeamRoster(teamIndex){
+  var slotTypes = rosterSlotList(state.league.roster);
+  var slots = slotTypes.map(function(t){ return { type:t, player:null }; });
+  var picks = state.draft.picks.filter(function(p){ return p.teamIndex === teamIndex; })
+    .sort(function(a,b){ return a.overall - b.overall; });
+  picks.forEach(function(pick){
+    var player = playerById(pick.playerId);
+    if(!player) return;
+    var pos = player.pos;
+    var candidateOrder = [pos, "FLEX", "SFLEX", "BENCH"];
+    for(var c=0;c<candidateOrder.length;c++){
+      var want = candidateOrder[c];
+      for(var i=0;i<slots.length;i++){
+        if(slots[i].player) continue;
+        if(want === pos ? slots[i].type === pos : slots[i].type === want && slotAcceptsPos(want, pos)){
+          slots[i].player = player;
+          break;
+        }
+      }
+      if(slots.some(function(s){return s.player===player;})) break;
+    }
+  });
+  return slots;
+}
+
+function playerById(id){
+  for(var i=0;i<state.players.length;i++) if(state.players[i].id === id) return state.players[i];
+  return null;
+}
+function availablePlayers(){
+  return state.players.filter(function(p){ return !p.drafted && !p.offBoard; })
+    .sort(function(a,b){ return (a.rank||9999) - (b.rank||9999); });
+}
+
+function currentPick(){
+  if(!state.draft) return null;
+  if(state.draft.currentIndex >= state.draft.order.length) return null;
+  return state.draft.order[state.draft.currentIndex];
+}
+
+function nextPickOverallForTeam(teamIndex, afterOverall){
+  var order = state.draft.order;
+  for(var i=0;i<order.length;i++){
+    if(order[i].teamIndex === teamIndex && order[i].overall > afterOverall) return order[i].overall;
+  }
+  return null;
+}
+
+function makePick(playerId, teamIndexOverride){
+  var pick = currentPick();
+  if(!pick) return;
+  var player = playerById(playerId);
+  if(!player || player.drafted) return;
+  var teamIndex = (teamIndexOverride !== undefined && teamIndexOverride !== null) ? teamIndexOverride : pick.teamIndex;
+  player.drafted = true;
+  player.offBoard = false;
+  player.draftedOverall = pick.overall;
+  state.draft.picks.push({
+    overall: pick.overall, round: pick.round, pickInRound: pick.pickInRound,
+    teamIndex: teamIndex, playerId: playerId
+  });
+  state.draft.currentIndex++;
+  saveState();
+  renderDraft();
+}
+function undoPick(){
+  if(!state.draft || state.draft.picks.length === 0) return;
+  var last = state.draft.picks.pop();
+  var player = playerById(last.playerId);
+  if(player){ player.drafted = false; player.draftedOverall = null; }
+  state.draft.currentIndex--;
+  saveState();
+  renderDraft();
+}
+
+/* ---------- Auto tiering fallback (per position, gap-based) ---------- */
+function computeAutoTiers(players){
+  var byPos = {};
+  players.forEach(function(p){ (byPos[p.pos] = byPos[p.pos] || []).push(p); });
+  Object.keys(byPos).forEach(function(pos){
+    var list = byPos[pos].slice().sort(function(a,b){ return (a.rank||9999)-(b.rank||9999); });
+    var gaps = [];
+    for(var i=1;i<list.length;i++) gaps.push((list[i].rank||0) - (list[i-1].rank||0));
+    var avgGap = gaps.length ? gaps.reduce(function(a,b){return a+b;},0)/gaps.length : 1;
+    var tier = 1;
+    list.forEach(function(p, i){
+      if(i>0){
+        var gap = (list[i].rank||0) - (list[i-1].rank||0);
+        if(gap > Math.max(avgGap*1.6, 3)) tier++;
+      }
+      if(p.tier === undefined || p.tier === null || p.tier === "") p.autoTier = tier;
+    });
+  });
+}
+
+/* ---------- Scarcity: open starter demand per position across league ---------- */
+function starterDemandByPosition(){
+  var demand = {}; POSITIONS.forEach(function(p){ demand[p]=0; });
+  var hasIntel = state.teams.some(function(t){ return t.positionNeed; });
+  if(hasIntel){
+    state.teams.forEach(function(t){
+      if(!t.positionNeed) return;
+      POSITIONS.forEach(function(p){
+        var tier = t.positionNeed[p];
+        demand[p] += tier==="critical" ? 1.5 : tier==="thin" ? 0.75 : 0.15;
+      });
+    });
+    return demand;
+  }
+  for(var t=0;t<state.teams.length;t++){
+    var slots = computeTeamRoster(t);
+    slots.forEach(function(s){
+      if(s.player) return;
+      if(s.type === "BENCH") return;
+      if(s.type === "FLEX"){ FLEX_ELIGIBLE.forEach(function(p){ demand[p]++; }); }
+      else if(s.type === "SFLEX"){ SFLEX_ELIGIBLE.forEach(function(p){ demand[p]++; }); }
+      else if(demand[s.type] !== undefined) demand[s.type]++;
+    });
+  }
+  return demand;
+}
+
+/* ---------- Recommendation engine ---------- */
+function recommendationsForTeam(teamIndex, limit){
+  var avail = availablePlayers();
+  if(!avail.length) return [];
+  var pick = currentPick();
+  var overall = pick ? pick.overall : (state.draft.picks.length + 1);
+  var demand = starterDemandByPosition();
+  var posAvailCount = {};
+  avail.forEach(function(p){ posAvailCount[p.pos] = (posAvailCount[p.pos]||0) + 1; });
+
+  var teamObj = state.teams[teamIndex];
+  var realNeed = teamObj && teamObj.positionNeed;
+
+  var mySlots = computeTeamRoster(teamIndex);
+  var openTypes = {};
+  mySlots.forEach(function(s){ if(!s.player) openTypes[s.type] = (openTypes[s.type]||0)+1; });
+
+  var nextOverall = nextPickOverallForTeam(teamIndex, overall) || (overall + state.teams.length);
+  var picksUntilNext = nextOverall - overall;
+
+  var n = avail.length;
+  var scored = avail.map(function(p, idx){
+    var rankPct = (n - idx) / n;
+    var needBonus = 0, needTag = null;
+    if(realNeed){
+      var tier = realNeed[p.pos] || "ok";
+      needBonus = tier==="critical" ? 1.0 : tier==="thin" ? 0.6 : 0.25;
+      if(tier==="critical") needTag = {t:"Critical need at "+p.pos+" ("+(teamObj.realRosterCounts[p.pos]||0)+" rostered)", cls:"tag-cliff"};
+      else if(tier==="thin") needTag = {t:"Thin at "+p.pos+" ("+(teamObj.realRosterCounts[p.pos]||0)+" rostered)", cls:""};
+    } else {
+      if(openTypes[p.pos]) needBonus = 1.0;
+      else if(openTypes.FLEX && FLEX_ELIGIBLE.indexOf(p.pos) > -1) needBonus = 0.6;
+      else if(openTypes.SFLEX && SFLEX_ELIGIBLE.indexOf(p.pos) > -1) needBonus = 0.45;
+      else needBonus = 0.2;
+    }
+
+    var valueScore = 0;
+    if(p.adp){ valueScore = clamp((p.adp - overall) / 12, -1, 1); }
+
+    var ratio = (posAvailCount[p.pos]||0) / Math.max(demand[p.pos]||1, 1);
+    var scarcityBonus = clamp((1.8 - ratio) / 1.8, 0, 1);
+    var cliffSoon = scarcityBonus > 0.45 && picksUntilNext <= Math.max(demand[p.pos]||1,1) * 1.4;
+
+    var score = rankPct*0.45 + needBonus*0.25 + Math.max(valueScore,0)*0.15 + scarcityBonus*0.15
+                - Math.max(-valueScore,0)*0.08;
+
+    var tags = [];
+    if(idx === 0) tags.push({t:"Best available", cls:""});
+    if(realNeed){
+      if(needTag) tags.push(needTag);
+    } else {
+      if(openTypes[p.pos]) tags.push({t:"Fills open "+p.pos, cls:""});
+      else if(openTypes.FLEX && FLEX_ELIGIBLE.indexOf(p.pos)>-1) tags.push({t:"Fills FLEX", cls:""});
+    }
+    if(p.adp && (p.adp - overall) >= 6) tags.push({t:"Value · ADP "+Math.round(p.adp), cls:"tag-value"});
+    if(p.adp && (overall - p.adp) >= 8) tags.push({t:"Reach vs ADP "+Math.round(p.adp), cls:"tag-cliff"});
+    if(cliffSoon) tags.push({t:p.pos+" cliff — "+(posAvailCount[p.pos]||0)+" left", cls:"tag-cliff"});
+
+    return { player:p, score:score, tags:tags };
+  });
+
+  scored.sort(function(a,b){ return b.score - a.score; });
+  return scored.slice(0, limit || 6);
+}
+
+/* ============================== RENDER: SETUP ============================== */
+function renderSetup(){
+  stopSleeperPolling();
+  var root = document.getElementById("view-setup");
+  clear(root);
+  document.getElementById("topbar").hidden = true;
+  document.getElementById("view-draft").hidden = true;
+  root.hidden = false;
+
+  var savedDraftExists = state.draft && state.draft.picks && state.draft.picks.length > 0;
+
+  var wizard = el("div", {class:"wizard"});
+
+  var header = el("div", {}, [
+    el("div", {class:"eyebrow"}, ["Draft Prep"]),
+    el("h1", {class:"section-title"}, ["War Room"]),
+    el("div", {class:"section-sub"}, ["Set your league format, import rankings, then run the board live on draft day."])
+  ]);
+  wizard.appendChild(header);
+
+  if(savedDraftExists && state.setupStep === 1){
+    wizard.appendChild(el("div", {class:"card card-pad resume-banner", style:"margin-bottom:18px;"}, [
+      el("div", {}, [
+        el("div", {style:"font-weight:700;"}, ["A draft is already in progress — "+state.draft.picks.length+" picks made."]),
+        el("div", {class:"help"}, ["Resume where you left off, or reset to start a new one."])
+      ]),
+      el("div", {style:"display:flex;gap:8px;"}, [
+        el("button", {class:"btn btn-primary", onclick:function(){ state.screen="draft"; saveState(); renderApp(); }}, ["Resume Draft"]),
+      ])
+    ]));
+  }
+
+  wizard.appendChild(el("div", {class:"steps"}, [
+    el("div", {class:"step "+(state.setupStep===1?"active":"done")}, [el("div",{class:"step-num"},["1"]), "League Format"]),
+    el("div", {class:"step "+(state.setupStep===2?"active":(state.setupStep>2?"done":""))}, [el("div",{class:"step-num"},["2"]), "Import Rankings"]),
+  ]));
+
+  var stepCard = el("div", {class:"card card-pad"});
+  if(state.setupStep === 1) renderStepLeague(stepCard);
+  else renderStepImport(stepCard);
+  wizard.appendChild(stepCard);
+
+  root.appendChild(wizard);
+}
+
+function applySleeperLeagueResult(lg, res){
+  if(res.name) lg.name = res.name;
+  lg.numTeams = res.numTeams;
+  lg.roster = res.roster;
+  lg.scoring = res.scoring;
+  if(res.customPPR !== undefined) lg.customPPR = res.customPPR;
+  var parts = [res.numTeams+" teams · "+({standard:"Standard",half:"Half PPR",ppr:"Full PPR",custom:(res.customPPR)+" PPR"})[res.scoring]+" · "+rosterSlotList(res.roster).length+" roster spots."];
+  if(res.skipped.length) parts.push("Skipped unsupported slots: "+res.skipped.join(", ")+".");
+  return parts;
+}
+function applySleeperUsersResult(lg, res){
+  lg._teamNames = res.names.slice(0, lg.numTeams);
+  while(lg._teamNames.length < lg.numTeams) lg._teamNames.push("Team "+(lg._teamNames.length+1));
+  if(res.youIndex > -1) lg.userTeamIndex = res.youIndex;
+}
+
+function renderSleeperBlock(lg, container){
+  var wrap = el("div",{class:"subcard"});
+  wrap.appendChild(el("div",{class:"subcard-head"},[
+    el("div",{class:"sleeper-mark"},["S"]),
+    el("div",{class:"subcard-title"},["Import from Sleeper"])
+  ]));
+  wrap.appendChild(el("div",{class:"help", style:"margin:6px 0 2px;"},[
+    "Enter your username and this tries a live connection to Sleeper. If that's blocked (it is when this page runs inside claude.ai), paste the data manually below instead."
+  ]));
+
+  var statusHost = el("div",{style:"margin-top:10px;"});
+  function showStatus(ok, text){ clear(statusHost); statusHost.appendChild(el("div",{class:"import-msg "+(ok?"ok":"err")},[text])); }
+  if(lg._sleeperStatus) showStatus(lg._sleeperStatus.ok, lg._sleeperStatus.text);
+
+  var liveUserInput = el("input",{type:"text", placeholder:"your Sleeper username", value: lg._sleeperUsername||""});
+  liveUserInput.addEventListener("input", function(e){ lg._sleeperUsername = e.target.value.trim(); });
+  var seasonInput = el("input",{type:"text", placeholder:"season", value: lg._sleeperSeason || defaultSleeperSeason(), style:"max-width:90px;"});
+  seasonInput.addEventListener("input", function(e){ lg._sleeperSeason = e.target.value.trim(); });
+
+  var findBtn = el("button",{class:"btn btn-primary btn-sm", type:"button"},["Find My Leagues"]);
+  var leaguePickerHost = el("div",{style:"margin-top:12px;"});
+
+  findBtn.addEventListener("click", function(){
+    var username = (lg._sleeperUsername||"").trim();
+    var season = (lg._sleeperSeason||defaultSleeperSeason()).trim();
+    if(!username){ showStatus(false, "Enter your Sleeper username first."); return; }
+    findBtn.disabled = true; findBtn.textContent = "Looking…";
+    clear(leaguePickerHost);
+    showStatus(true, "Trying a live connection to Sleeper…");
+    sleeperLiveFetch("/user/"+encodeURIComponent(username)).then(function(user){
+      if(!user || !user.user_id){
+        lg._sleeperLive = false;
+        showStatus(false, "Live sync isn't available here (this happens when the app runs inside claude.ai's sandbox) — use \"Paste manually\" below instead. If you're running this locally, double-check the username.");
+        findBtn.disabled = false; findBtn.textContent = "Find My Leagues";
+        var details = container.querySelector("details.sleeper-manual");
+        if(details) details.open = true;
+        return;
+      }
+      lg._sleeperLive = true;
+      lg._sleeperUserId = user.user_id;
+      return sleeperLiveFetch("/user/"+user.user_id+"/leagues/nfl/"+encodeURIComponent(season)).then(function(leagues){
+        findBtn.disabled = false; findBtn.textContent = "Find My Leagues";
+        if(!leagues || !leagues.length){
+          showStatus(false, "Connected to Sleeper, but found no "+season+" leagues for \""+username+"\". Try a different season.");
+          return;
+        }
+        showStatus(true, "Found "+leagues.length+" league(s) for "+season+" — pick one:");
+        clear(leaguePickerHost);
+        leagues.forEach(function(leagueObj){
+          leaguePickerHost.appendChild(el("button",{class:"btn btn-sm", type:"button", style:"display:flex;justify-content:space-between;width:100%;margin-bottom:6px;text-align:left;", onclick:function(){
+            applySleeperFullImport(lg, container, leagueObj);
+          }},[
+            el("span",{},[leagueObj.name || "(unnamed league)"]),
+            el("span",{class:"help"},[leagueObj.total_rosters+" teams"])
+          ]));
+        });
+      });
+    }).catch(function(){
+      findBtn.disabled = false; findBtn.textContent = "Find My Leagues";
+      showStatus(false, "Live sync isn't available here — use \"Paste manually\" below instead.");
+    });
+  });
+
+  wrap.appendChild(el("div",{class:"sleeper-row"},[
+    el("div",{class:"field"},[el("label",{},["Your Sleeper username"]), liveUserInput]),
+    el("div",{class:"field", style:"flex:0 0 90px;"},[el("label",{},["Season"]), seasonInput]),
+    findBtn
+  ]));
+  wrap.appendChild(statusHost);
+  wrap.appendChild(leaguePickerHost);
+
+  var manual = el("details",{class:"sleeper-manual", style:"margin-top:14px;"});
+  manual.appendChild(el("summary",{style:"cursor:pointer;font-size:12.5px;color:var(--text-muted);font-weight:600;"},["Paste manually instead"]));
+  var manualBody = el("div",{style:"margin-top:12px;"});
+
+  var idInput = el("input",{type:"text", placeholder:"e.g. 289646328504385536", value: lg._sleeperLeagueId||""});
+  idInput.addEventListener("input", function(e){ lg._sleeperLeagueId = e.target.value.trim(); });
+  var leagueTA = el("textarea",{placeholder:"Paste the League JSON here…"});
+  var leagueMsgHost = el("div",{});
+  if(lg._sleeperMsg) showStatusIn(leagueMsgHost, lg._sleeperMsg.ok, lg._sleeperMsg.text);
+  function showStatusIn(host, ok, text){ clear(host); host.appendChild(el("div",{class:"import-msg "+(ok?"ok":"err")},[text])); }
+
+  manualBody.appendChild(el("div",{class:"sleeper-row"},[
+    el("div",{class:"field"},[el("label",{},["Sleeper league ID"]), idInput]),
+    el("button",{class:"btn btn-sm", type:"button", onclick:function(){
+      var id = (lg._sleeperLeagueId||"").trim();
+      if(!id){ showStatusIn(leagueMsgHost, false, "Enter your league ID first — find it in your Sleeper league's URL (sleeper.com/leagues/LEAGUE_ID/…)."); return; }
+      window.open("https://api.sleeper.app/v1/league/"+encodeURIComponent(id), "_blank");
+    }},["Open League JSON ↗"])
+  ]));
+  manualBody.appendChild(el("div",{class:"help", style:"margin-bottom:8px;"},["Find the ID in your Sleeper league URL: sleeper.com/leagues/", el("strong",{},["LEAGUE_ID"]), "/team"]));
+  manualBody.appendChild(el("div",{class:"sleeper-paste"},[
+    leagueTA,
+    el("button",{class:"btn btn-primary btn-sm", type:"button", onclick:function(){
+      var res = parseSleeperLeagueJSON(leagueTA.value);
+      if(!res.ok){ showStatusIn(leagueMsgHost, false, res.error); return; }
+      var summaryParts = applySleeperLeagueResult(lg, res);
+      lg._sleeperMsg = { ok:true, text: "Imported — "+summaryParts.join(" ") };
+      renderStepLeague(container);
+    }},["Apply League Settings"])
+  ]));
+  manualBody.appendChild(leagueMsgHost);
+  manualBody.appendChild(el("div",{style:"height:16px;"}));
+
+  var userNameInput = el("input",{type:"text", placeholder:"your Sleeper username (optional)", value: lg._sleeperUsername||""});
+  userNameInput.addEventListener("input", function(e){ lg._sleeperUsername = e.target.value.trim(); });
+  var usersTA = el("textarea",{placeholder:"Paste the Users JSON here…"});
+  var usersMsgHost = el("div",{});
+  if(lg._sleeperUsersMsg) showStatusIn(usersMsgHost, lg._sleeperUsersMsg.ok, lg._sleeperUsersMsg.text);
+
+  manualBody.appendChild(el("div",{class:"help", style:"font-weight:700;color:var(--text-muted);margin-bottom:2px;"},["Team names & owners (optional)"]));
+  manualBody.appendChild(el("div",{class:"sleeper-row"},[
+    el("div",{class:"field"},[el("label",{},["Your Sleeper username"]), userNameInput]),
+    el("button",{class:"btn btn-sm", type:"button", onclick:function(){
+      var id = (lg._sleeperLeagueId||"").trim();
+      if(!id){ showStatusIn(usersMsgHost, false, "Enter your league ID above first."); return; }
+      window.open("https://api.sleeper.app/v1/league/"+encodeURIComponent(id)+"/users", "_blank");
+    }},["Open Team Owners JSON ↗"])
+  ]));
+  manualBody.appendChild(el("div",{class:"sleeper-paste"},[
+    usersTA,
+    el("button",{class:"btn btn-primary btn-sm", type:"button", onclick:function(){
+      var res = parseSleeperUsersJSON(usersTA.value, lg._sleeperUsername);
+      if(!res.ok){ showStatusIn(usersMsgHost, false, res.error); return; }
+      applySleeperUsersResult(lg, res);
+      var msg = "Imported "+res.names.length+" team name(s).";
+      if(res.youIndex > -1) msg += " Matched you to \""+res.names[res.youIndex]+"\".";
+      else if(lg._sleeperUsername) msg += " Couldn't match \""+lg._sleeperUsername+"\" to an owner — pick your team below.";
+      lg._sleeperUsersMsg = { ok:true, text: msg };
+      renderStepLeague(container);
+    }},["Apply Team Names"])
+  ]));
+  manualBody.appendChild(usersMsgHost);
+
+  manual.appendChild(manualBody);
+  wrap.appendChild(manual);
+
+  return wrap;
+}
+
+function applySleeperFullImport(lg, container, leagueObj){
+  var leagueRes = parseSleeperLeagueObject(leagueObj);
+  if(!leagueRes.ok){
+    lg._sleeperStatus = { ok:false, text: leagueRes.error };
+    renderStepLeague(container);
+    return;
+  }
+  lg._sleeperDraftId = leagueRes.draftId;
+  lg._sleeperLeagueIdConfirmed = leagueRes.leagueId;
+  var summaryParts = applySleeperLeagueResult(lg, leagueRes);
+  lg._sleeperStatus = { ok:true, text: "Importing team names…" };
+  renderStepLeague(container);
+
+  sleeperLiveFetch("/league/"+leagueObj.league_id+"/users").then(function(users){
+    if(users){
+      var usersRes = parseSleeperUsersArray(users, lg._sleeperUserId, lg._sleeperUsername);
+      if(usersRes.ok){
+        applySleeperUsersResult(lg, usersRes);
+        summaryParts.push(usersRes.youIndex > -1
+          ? "Team names imported — you're \""+usersRes.names[usersRes.youIndex]+"\"."
+          : "Team names imported.");
+      }
+    }
+    lg._sleeperStatus = { ok:true, text: "Imported \""+(leagueRes.name||"your league")+"\" — "+summaryParts.join(" ") };
+    renderStepLeague(container);
+  });
+}
+
+function renderStepLeague(container){
+  clear(container);
+  var lg = state.league;
+
+  container.appendChild(renderSleeperBlock(lg, container));
+  container.appendChild(el("div",{class:"divider-label"},["Or set up manually"]));
+
+  var nameField = el("div",{class:"field"},[
+    el("label",{},["League name"]),
+    el("input",{type:"text", value:lg.name, oninput:function(e){ lg.name = e.target.value; }})
+  ]);
+
+  var teamsField = el("div",{class:"field"},[
+    el("label",{},["Number of teams"]),
+    el("input",{type:"number", min:"4", max:"20", value:String(lg.numTeams), oninput:function(e){
+      lg.numTeams = clamp(parseInt(e.target.value||"10",10),4,20);
+    }})
+  ]);
+
+  var slotField = el("div",{class:"field"},[
+    el("label",{},["Your draft slot"]),
+    (function(){
+      var sel = el("select",{ onchange:function(e){ lg.userTeamIndex = parseInt(e.target.value,10); } });
+      for(var i=0;i<lg.numTeams;i++){
+        sel.appendChild(el("option",{value:String(i), selected: i===lg.userTeamIndex ? "selected" : null}, ["Slot "+(i+1)]));
+      }
+      return sel;
+    })()
+  ]);
+
+  container.appendChild(el("div",{class:"field-grid"},[nameField, teamsField, slotField]));
+
+  container.appendChild(el("div",{class:"field", style:"margin-bottom:18px;"},[
+    el("label",{},["Scoring"]),
+    el("div",{class:"radio-row"}, ["standard","half","ppr","custom"].map(function(v){
+      var labelText = v==="standard"?"Standard":v==="half"?"Half PPR":v==="ppr"?"Full PPR":"Custom";
+      var chip = el("label",{class:"radio-chip"+(lg.scoring===v?" checked":"")},[
+        el("input",{type:"radio", name:"scoring", value:v, onchange:function(){ lg.scoring=v; renderStepLeague(container); }}),
+        labelText
+      ]);
+      return chip;
+    }))
+  ]));
+
+  if(lg.scoring === "custom"){
+    container.appendChild(el("div",{class:"field", style:"max-width:220px;margin-bottom:18px;"},[
+      el("label",{},["Points per reception"]),
+      el("input",{type:"number", step:"0.1", min:"0", max:"1.5", value:String(lg.customPPR), oninput:function(e){ lg.customPPR = parseFloat(e.target.value||"0"); }})
+    ]));
+  }
+
+  container.appendChild(el("div",{class:"field", style:"margin-bottom:18px;"},[
+    el("label",{},["Draft type"]),
+    el("div",{class:"radio-row"}, [
+      (function(){
+        var chip = el("label",{class:"radio-chip"+(lg.draftType==="snake"?" checked":"")},[
+          el("input",{type:"radio",name:"dtype",onchange:function(){ lg.draftType="snake"; renderStepLeague(container); }}),
+          "Snake"
+        ]); return chip;
+      })(),
+      (function(){
+        var chip = el("label",{class:"radio-chip"+(lg.draftType==="linear"?" checked":"")},[
+          el("input",{type:"radio",name:"dtype",onchange:function(){ lg.draftType="linear"; renderStepLeague(container); }}),
+          "Linear"
+        ]); return chip;
+      })()
+    ])
+  ]));
+
+  if(lg.draftType === "snake"){
+    container.appendChild(el("label",{class:"check-inline", style:"margin-bottom:18px;"},[
+      el("input",{type:"checkbox", checked: lg.trr ? "checked" : null, onchange:function(e){ lg.trr = e.target.checked; }}),
+      "Third-round reversal"
+    ]));
+  }
+
+  container.appendChild(el("h3",{class:"section-title", style:"font-size:16px;margin:6px 0 4px;"},["Roster construction"]));
+  container.appendChild(el("div",{class:"section-sub", style:"margin-bottom:12px;"},["How many of each slot per team."]));
+
+  var slotDefs = [["QB","QB"],["RB","RB"],["WR","WR"],["TE","TE"],["FLEX","FLEX (R/W/T)"],["SFLEX","Superflex"],["K","K"],["DST","D/ST"],["BENCH","Bench"]];
+  var rosterGrid = el("div",{class:"roster-builder"});
+  slotDefs.forEach(function(pair){
+    var key = pair[0], label = pair[1];
+    var nSpan = el("span",{class:"n"},[String(lg.roster[key])]);
+    var ctl = el("div",{class:"roster-slot-ctl"},[
+      el("div",{class:"slot-name"},[label]),
+      el("div",{class:"stepper"},[
+        el("button",{type:"button", onclick:function(){ lg.roster[key] = Math.max(0, lg.roster[key]-1); nSpan.textContent = String(lg.roster[key]); updateRosterTotal(); }},["−"]),
+        nSpan,
+        el("button",{type:"button", onclick:function(){ lg.roster[key] = Math.min(9, lg.roster[key]+1); nSpan.textContent = String(lg.roster[key]); updateRosterTotal(); }},["+"])
+      ])
+    ]);
+    rosterGrid.appendChild(ctl);
+  });
+  container.appendChild(rosterGrid);
+  var rosterTotal = el("div",{class:"roster-total"});
+  function updateRosterTotal(){
+    rosterTotal.textContent = "Roster size: " + totalRounds(lg) + " players/team · " + (totalRounds(lg)*lg.numTeams) + " total picks";
+  }
+  updateRosterTotal();
+  container.appendChild(rosterTotal);
+
+  container.appendChild(el("h3",{class:"section-title", style:"font-size:16px;margin:20px 0 4px;"},["Team names"]));
+  var teamsWrap = el("div",{class:"teams-list"});
+  function renderTeamsList(){
+    clear(teamsWrap);
+    for(var i=0;i<lg.numTeams;i++){
+      (function(i){
+        if(!lg._teamNames) lg._teamNames = [];
+        if(lg._teamNames[i] === undefined) lg._teamNames[i] = "Team "+(i+1);
+        var isYou = lg.userTeamIndex === i;
+        var row = el("div",{class:"team-row"+(isYou?" is-you":"")},[
+          el("input",{class:"you-radio", type:"radio", name:"you", title:"This is my team", checked: isYou?"checked":null, onchange:function(){ lg.userTeamIndex = i; renderStepLeague(container); }}),
+          el("input",{type:"text", value: lg._teamNames[i], oninput:function(e){ lg._teamNames[i] = e.target.value; }}),
+          isYou ? el("span",{class:"pos-chip pos-FLEX"},["YOU"]) : null
+        ]);
+        teamsWrap.appendChild(row);
+      })(i);
+    }
+  }
+  renderTeamsList();
+  container.appendChild(teamsWrap);
+  container.appendChild(el("div",{class:"help", style:"margin-top:6px;"},["Select the radio button next to your team."]));
+
+  container.appendChild(el("div",{class:"wizard-nav"},[
+    el("div",{},[]),
+    el("button",{class:"btn btn-primary", onclick:function(){
+      if(!lg._teamNames) lg._teamNames = [];
+      for(var i=0;i<lg.numTeams;i++) if(lg._teamNames[i]===undefined) lg._teamNames[i] = "Team "+(i+1);
+      state.setupStep = 2; saveState(); renderSetup();
+    }},["Next: Import Rankings →"])
+  ]));
+}
+
+function renderStepImport(container){
+  clear(container);
+  container.appendChild(el("h3",{class:"section-title", style:"font-size:16px;"},["Import player rankings"]));
+  container.appendChild(el("div",{class:"section-sub"},[
+    "Paste a rankings table (from a CSV, spreadsheet, or copied straight out of a browser table) or upload a file. Tab- and comma-separated both work."
+  ]));
+
+  var textarea = el("textarea",{class:"csv-input", placeholder:"Player,Pos,Team,Bye,Rank,ADP,Tier\nJa'Marr Chase,WR,CIN,10,1,1.2,1\n..."});
+  if(state.rawCsvPreview) textarea.value = state.rawCsvPreview;
+
+  var importRow = el("div",{class:"import-row"},[
+    el("button",{class:"btn file-btn"},[
+      "Upload CSV file",
+      el("input",{type:"file", accept:".csv,.tsv,.txt", onchange:function(e){
+        var f = e.target.files[0];
+        if(!f) return;
+        var reader = new FileReader();
+        reader.onload = function(){ textarea.value = reader.result; parseAndPreview(textarea.value); };
+        reader.readAsText(f);
+      }})
+    ]),
+    el("button",{class:"btn btn-primary", onclick:function(){ parseAndPreview(textarea.value); }},["Parse Pasted Data"])
+  ]);
+
+  container.appendChild(importRow);
+  container.appendChild(textarea);
+
+  var mapWrap = el("div",{id:"mapWrap"});
+  container.appendChild(mapWrap);
+
+  function parseAndPreview(text){
+    state.rawCsvPreview = text;
+    text = (text||"").trim();
+    clear(mapWrap);
+    if(!text){ return; }
+    var delim = detectDelimiter(text);
+    var rows = parseDelimited(text, delim);
+    if(rows.length < 2){
+      mapWrap.appendChild(el("div",{class:"help", style:"color:var(--risk);margin-top:10px;"},["Couldn't find at least a header row and one data row."]));
+      return;
+    }
+    var headers = rows[0];
+    var dataRows = rows.slice(1);
+
+    var mapping = state.columnMap || {};
+    ["name","pos","team","rank","adp","tier","bye"].forEach(function(key){
+      if(mapping[key] === undefined || mapping[key] >= headers.length) mapping[key] = guessColumn(headers, key);
+    });
+    state.columnMap = mapping;
+
+    mapWrap.appendChild(el("div",{class:"map-grid"}, ["name","pos","team","rank","adp","tier","bye"].map(function(key){
+      var labelMap = {name:"Player name*",pos:"Position*",team:"NFL team",rank:"Rank",adp:"ADP",tier:"Tier",bye:"Bye week"};
+      var sel = el("select",{onchange:function(e){ mapping[key] = parseInt(e.target.value,10); renderPreviewTable(); }},[
+        el("option",{value:"-1"},["— none —"])
+      ].concat(headers.map(function(h,i){
+        return el("option",{value:String(i), selected: mapping[key]===i ? "selected" : null},[h || "Column "+(i+1)]);
+      })));
+      return el("div",{class:"field map-field"},[el("label",{},[labelMap[key]]), sel]);
+    })));
+
+    var previewHost = el("div");
+    mapWrap.appendChild(previewHost);
+
+    var confirmBtn = el("button",{class:"btn btn-primary", style:"margin-top:16px;", onclick:function(){ commitImport(headers, dataRows, mapping); }},["Import "+dataRows.length+" Players →"]);
+    mapWrap.appendChild(confirmBtn);
+
+    function renderPreviewTable(){
+      clear(previewHost);
+      var summary = el("div",{class:"import-summary"},[
+        stat(dataRows.length, "Rows found"),
+        stat(headers.length, "Columns"),
+        stat(delim === "\t" ? "Tab" : "Comma", "Delimiter")
+      ]);
+      previewHost.appendChild(summary);
+
+      var table = el("table",{},[
+        el("thead",{},[el("tr",{},["Player","Pos","Team","Rank","ADP","Tier","Bye"].map(function(h){return el("th",{},[h]);}))]),
+        el("tbody",{}, dataRows.slice(0,8).map(function(r){
+          return el("tr",{},[
+            el("td",{},[mapping.name>-1 ? r[mapping.name] : ""]),
+            el("td",{},[mapping.pos>-1 ? normalizePos(r[mapping.pos]) : ""]),
+            el("td",{},[mapping.team>-1 ? r[mapping.team] : ""]),
+            el("td",{class:"tabular"},[mapping.rank>-1 ? r[mapping.rank] : ""]),
+            el("td",{class:"tabular"},[mapping.adp>-1 ? r[mapping.adp] : ""]),
+            el("td",{class:"tabular"},[mapping.tier>-1 ? r[mapping.tier] : ""]),
+            el("td",{class:"tabular"},[mapping.bye>-1 ? r[mapping.bye] : ""])
+          ]);
+        }))
+      ]);
+      previewHost.appendChild(el("div",{class:"preview-wrap"},[table]));
+      if(dataRows.length > 8) previewHost.appendChild(el("div",{class:"help", style:"margin-top:6px;"},["Showing first 8 of "+dataRows.length+" rows."]));
+    }
+    function stat(n,l){ return el("div",{class:"stat-pill"},[el("div",{class:"n tabular"},[String(n)]), el("div",{class:"l"},[l])]); }
+    renderPreviewTable();
+  }
+
+  if(state.rawCsvPreview) parseAndPreview(state.rawCsvPreview);
+
+  function commitImport(headers, dataRows, mapping){
+    if(mapping.name < 0 || mapping.pos < 0){
+      alert("Please map at least Player name and Position before importing.");
+      return;
+    }
+    var players = dataRows.map(function(r, i){
+      var name = (r[mapping.name]||"").trim();
+      if(!name) return null;
+      var pos = normalizePos(r[mapping.pos]);
+      var rank = mapping.rank>-1 ? parseFloat(r[mapping.rank]) : (i+1);
+      var adp = mapping.adp>-1 ? parseFloat(r[mapping.adp]) : null;
+      var tier = mapping.tier>-1 ? parseFloat(r[mapping.tier]) : null;
+      return {
+        id: uid(),
+        name: name,
+        pos: pos,
+        team: mapping.team>-1 ? (r[mapping.team]||"").trim() : "",
+        rank: isNaN(rank) ? (i+1) : rank,
+        adp: (adp===null || isNaN(adp)) ? null : adp,
+        tier: (tier===null || isNaN(tier)) ? null : tier,
+        bye: mapping.bye>-1 ? (r[mapping.bye]||"").trim() : "",
+        drafted: false,
+        draftedOverall: null
+      };
+    }).filter(Boolean);
+
+    players.sort(function(a,b){ return a.rank - b.rank; });
+    computeAutoTiers(players);
+    state.players = players;
+    saveState();
+    state.setupStep = 3;
+    renderReadyStep(container, players.length);
+  }
+}
+
+function renderReadyStep(container, count){
+  clear(container);
+  container.appendChild(el("div",{class:"empty-state", style:"padding:10px 10px 26px;"},[
+    el("div",{style:"font-size:40px;font-family:var(--font-display);font-weight:800;color:var(--text);margin-bottom:6px;"},[String(count)]),
+    "players imported and ready."
+  ]));
+
+  var lg = state.league;
+  if(lg._sleeperDraftId && lg._sleeperLive){
+    var syncCheck = el("input",{type:"checkbox", checked: lg._sleeperSyncEnabled !== false ? "checked" : null});
+    syncCheck.addEventListener("change", function(e){ lg._sleeperSyncEnabled = e.target.checked; });
+    container.appendChild(el("label",{class:"check-inline", style:"justify-content:center;margin-bottom:10px;"},[
+      syncCheck, "Live-sync picks from this Sleeper draft as we go"
+    ]));
+  }
+
+  container.appendChild(el("div",{class:"wizard-nav"},[
+    el("button",{class:"btn", onclick:function(){ state.setupStep = 2; renderSetup(); }},["← Back to Import"]),
+    el("button",{class:"btn btn-primary", onclick:function(){
+      if(lg._sleeperDraftId && lg._sleeperLive && lg._sleeperSyncEnabled !== false) startLiveSleeperDraft();
+      else startDraft();
+    }},["Start the Draft →"])
+  ]));
+}
+
+/* ============================== DRAFT START ============================== */
+function startDraft(roundsOverride){
+  var lg = state.league;
+  state.teams = [];
+  for(var i=0;i<lg.numTeams;i++){
+    state.teams.push({ index:i, name: (lg._teamNames && lg._teamNames[i]) || ("Team "+(i+1)), isUser: i===lg.userTeamIndex, sleeperUserId: (lg._teamSleeperUserIds && lg._teamSleeperUserIds[i]) || null });
+  }
+  var rounds = roundsOverride || totalRounds(lg);
+  state.draft = {
+    order: buildDraftOrder(lg.numTeams, rounds, lg.draftType, lg.trr),
+    currentIndex: 0,
+    picks: []
+  };
+  state.players.forEach(function(p){ p.drafted=false; p.draftedOverall=null; });
+  state.screen = "draft";
+  state.activeTab = "players";
+  saveState();
+  renderApp();
+}
+
+/* ============================== LIVE SLEEPER DRAFT SYNC ============================== */
+var sleeperPollHandle = null;
+
+function normalizeNameForMatch(s){
+  return String(s||"").toLowerCase()
+    .replace(/[.'’]/g,"")
+    .replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"")
+    .replace(/[^a-z0-9]+/g," ")
+    .trim();
+}
+
+function findExistingPlayerMatch(fullName, pos, team, excludeDrafted){
+  if(pos === "DST" && team){
+    var byTeam = state.players.find(function(p){ return (!excludeDrafted || !p.drafted) && p.pos === "DST" && p.team && p.team.toUpperCase() === team.toUpperCase(); });
+    if(byTeam) return byTeam;
+  }
+  var target = normalizeNameForMatch(fullName);
+  if(!target) return null;
+  var exact = state.players.find(function(p){ return (!excludeDrafted || !p.drafted) && normalizeNameForMatch(p.name) === target && (!pos || !p.pos || p.pos === pos); });
+  if(exact) return exact;
+  var looser = state.players.find(function(p){ return (!excludeDrafted || !p.drafted) && normalizeNameForMatch(p.name) === target; });
+  if(looser) return looser;
+  return null;
+}
+
+function matchOrCreatePlayerFromSleeperPick(pick){
+  var meta = pick.metadata || {};
+  var pos = normalizePos(meta.position || "");
+  var fullName = ((meta.first_name||"") + " " + (meta.last_name||"")).trim();
+
+  var found = findExistingPlayerMatch(fullName, pos, meta.team, true);
+  if(found) return found;
+
+  var synthetic = {
+    id: uid(), name: fullName || (meta.team ? meta.team+" DST" : "Unknown Player"),
+    pos: pos || "FLEX", team: meta.team || "",
+    rank: 9000 + pick.pick_no, adp: null, tier: null, bye: "",
+    drafted: false, draftedOverall: null, _sleeperSynthetic: true
+  };
+  state.players.push(synthetic);
+  return synthetic;
+}
+
+function leagueStarterDemand(lg){
+  var demand = {QB:0,RB:0,WR:0,TE:0,K:0,DST:0};
+  demand.QB += lg.roster.QB; demand.RB += lg.roster.RB; demand.WR += lg.roster.WR;
+  demand.TE += lg.roster.TE; demand.K += lg.roster.K; demand.DST += lg.roster.DST;
+  FLEX_ELIGIBLE.forEach(function(p){ demand[p] += lg.roster.FLEX / FLEX_ELIGIBLE.length; });
+  SFLEX_ELIGIBLE.forEach(function(p){ demand[p] += lg.roster.SFLEX / SFLEX_ELIGIBLE.length; });
+  return demand;
+}
+
+function computeDynastyTeamIntel(rosters, playerMap){
+  var lg = state.league;
+  var starterDemand = leagueStarterDemand(lg);
+  state.teams.forEach(function(team){
+    if(!team.sleeperUserId) return;
+    var roster = rosters.find(function(r){ return r.owner_id === team.sleeperUserId; });
+    if(!roster) return;
+    var counts = {QB:0,RB:0,WR:0,TE:0,K:0,DST:0};
+    var list = [];
+    (roster.players||[]).forEach(function(pid){
+      var meta = playerMap[pid];
+      if(!meta) return;
+      var pos = normalizePos(meta.position || "");
+      if(counts[pos] === undefined) return;
+      counts[pos]++;
+      var name = meta.full_name || ((meta.first_name||"") + " " + (meta.last_name||"")).trim();
+      list.push({ name: name, pos: pos, team: meta.team || "" });
+    });
+    list.sort(function(a,b){ return a.pos === b.pos ? a.name.localeCompare(b.name) : a.pos.localeCompare(b.pos); });
+    var need = {};
+    POSITIONS.forEach(function(p){
+      if(!starterDemand[p]) return; // position isn't used in this league's format at all
+      var ratio = counts[p] / Math.max(starterDemand[p], 0.5);
+      need[p] = ratio < 1 ? "critical" : ratio < 1.75 ? "thin" : "ok";
+    });
+    team.realRoster = list;
+    team.realRosterCounts = counts;
+    team.positionNeed = need;
+  });
+}
+
+function markOffBoardFromRosters(rosters, playerMap){
+  if(!rosters || !playerMap) return 0;
+  var ownedIds = {};
+  rosters.forEach(function(r){ (r.players||[]).forEach(function(pid){ ownedIds[pid] = true; }); });
+  var marked = 0;
+  Object.keys(ownedIds).forEach(function(pid){
+    var meta = playerMap[pid];
+    if(!meta) return;
+    var pos = normalizePos(meta.position || "");
+    var fullName = meta.full_name || ((meta.first_name||"") + " " + (meta.last_name||"")).trim();
+    var team = meta.team || "";
+    var found = findExistingPlayerMatch(fullName, pos, team, false);
+    if(found && !found.drafted && !found.offBoard){ found.offBoard = true; marked++; }
+  });
+  return marked;
+}
+
+function stopSleeperPolling(){
+  if(sleeperPollHandle){ clearInterval(sleeperPollHandle); sleeperPollHandle = null; }
+}
+function stopSleeperSync(){
+  stopSleeperPolling();
+  state.sleeperSyncActive = false;
+  saveState();
+}
+
+function refreshDynastyIntel(){
+  var lg = state.league;
+  if(!lg._sleeperLeagueIdConfirmed) return Promise.resolve();
+  state.sleeperSyncNote = "Checking existing rosters…";
+  renderTopbar();
+  return sleeperLiveFetch("/league/"+lg._sleeperLeagueIdConfirmed+"/rosters").then(function(rosters){
+    var hasRostered = rosters && rosters.some(function(r){ return r.players && r.players.length; });
+    if(!hasRostered){ state.sleeperSyncNote = null; renderTopbar(); return; }
+    state.sleeperSyncNote = "Checking existing rosters — fetching player database…";
+    renderTopbar();
+    return sleeperLiveFetch("/players/nfl", 20000).then(function(playerMap){
+      if(playerMap){
+        markOffBoardFromRosters(rosters, playerMap);
+        computeDynastyTeamIntel(rosters, playerMap);
+        saveState();
+      } else {
+        state.sleeperSyncError = "Couldn't check existing dynasty rosters — some already-rostered players may show as available until the next reload.";
+      }
+      state.sleeperSyncNote = null;
+      renderApp();
+    });
+  }).catch(function(){
+    state.sleeperSyncNote = null;
+    state.sleeperSyncError = "Couldn't check existing dynasty rosters — some already-rostered players may show as available until the next reload.";
+    renderApp();
+  });
+}
+
+function ensureSleeperPolling(){
+  if(!state.sleeperSyncActive || !state.sleeperDraftId) return;
+  if(sleeperPollHandle) return;
+  refreshDynastyIntel().then(function(){
+    pollSleeperDraft();
+    sleeperPollHandle = setInterval(pollSleeperDraft, 4000);
+  });
+}
+
+function pollSleeperDraft(){
+  if(!state.sleeperSyncActive || !state.sleeperDraftId) { stopSleeperPolling(); return; }
+  sleeperLiveFetch("/draft/"+state.sleeperDraftId+"/picks").then(function(picks){
+    if(!picks){
+      state.sleeperSyncError = "Couldn't reach Sleeper for the last update — will keep retrying.";
+      renderTopbar();
+      return;
+    }
+    state.sleeperSyncError = null;
+    var applied = state.draft.picks.length;
+    if(picks.length <= applied) { renderTopbar(); return; }
+    var newPicks = picks.slice(applied).sort(function(a,b){ return a.pick_no - b.pick_no; });
+    var before = state.draft.picks.length;
+    newPicks.forEach(function(sp){
+      if(!currentPick()) return;
+      var player = matchOrCreatePlayerFromSleeperPick(sp);
+      var teamIndex = clamp((sp.draft_slot||1) - 1, 0, state.teams.length - 1);
+      makePick(player.id, teamIndex);
+    });
+    if(state.draft.picks.length === before){
+      // nothing applied even though Sleeper reported new picks — avoid a silent stall
+      state.sleeperSyncError = "Sync stalled on an unexpected pick — try Stop Sync and restart if this persists.";
+    }
+    if(state.draft.currentIndex >= state.draft.order.length) stopSleeperPolling();
+    saveState();
+    renderDraft();
+  });
+}
+
+function startLiveSleeperDraft(){
+  var lg = state.league;
+  var readyEl = document.querySelector(".wizard-nav .btn-primary");
+  if(readyEl){ readyEl.disabled = true; readyEl.textContent = "Connecting to Sleeper…"; }
+
+  sleeperLiveFetch("/draft/"+lg._sleeperDraftId).then(function(draftObj){
+    if(!draftObj){
+      alert("Couldn't reach Sleeper to start live sync — starting a normal (non-synced) draft instead.");
+      startDraft();
+      return;
+    }
+    if(draftObj.type === "auction"){
+      alert("Live sync isn't supported for auction drafts yet — starting a normal (non-synced) draft instead.");
+      startDraft();
+      return;
+    }
+    return sleeperLiveFetch("/league/"+lg._sleeperLeagueIdConfirmed+"/users").then(function(users){
+      var slotToName = {};
+      var slotToUserId = {};
+      if(draftObj.draft_order && users){
+        var byUserId = {};
+        users.forEach(function(u){ byUserId[u.user_id] = (u.metadata && u.metadata.team_name) ? u.metadata.team_name : (u.display_name || "Team"); });
+        Object.keys(draftObj.draft_order).forEach(function(userId){
+          var slot = draftObj.draft_order[userId];
+          slotToName[slot] = byUserId[userId] || ("Team "+slot);
+          slotToUserId[slot] = userId;
+        });
+      }
+      var numTeams = (draftObj.settings && draftObj.settings.teams) || lg.numTeams;
+      lg.numTeams = numTeams;
+      lg.draftType = draftObj.type === "linear" ? "linear" : "snake";
+      lg._teamNames = [];
+      lg._teamSleeperUserIds = [];
+      for(var s=1; s<=numTeams; s++){
+        lg._teamNames[s-1] = slotToName[s] || ("Team "+s);
+        lg._teamSleeperUserIds[s-1] = slotToUserId[s] || null;
+        if(slotToUserId[s] === lg._sleeperUserId) lg.userTeamIndex = s-1;
+      }
+
+      var draftRounds = (draftObj.settings && draftObj.settings.rounds) || null;
+      startDraft(draftRounds);
+      state.sleeperSyncActive = true;
+      state.sleeperDraftId = lg._sleeperDraftId;
+      state.sleeperSyncError = null;
+      saveState();
+      renderApp();
+      ensureSleeperPolling();
+    });
+  }).catch(function(){
+    alert("Couldn't reach Sleeper to start live sync — starting a normal (non-synced) draft instead.");
+    startDraft();
+  });
+}
+
+/* ============================== RENDER: DRAFT ============================== */
+function renderTopbar(){
+  var bar = document.getElementById("topbar");
+  bar.hidden = false;
+  var clockBar = document.getElementById("clockBar");
+  clear(clockBar);
+  var pick = currentPick();
+  var lg = state.league;
+  if(!pick){
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Status"]), el("div",{class:"value"},["Draft complete"])]));
+  } else {
+    var team = state.teams[pick.teamIndex];
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Round"]), el("div",{class:"value tabular"},[String(pick.round)])]));
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Pick"]), el("div",{class:"value tabular"},[String(pick.pickInRound)])]));
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Overall"]), el("div",{class:"value tabular"},["#"+pick.overall])]));
+    clockBar.appendChild(el("div",{class:"clock-team"+(team.isUser?" on-user":""), "data-static": state.sleeperSyncActive ? "1" : null},[
+      el("span",{style:"font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;"},[team.isUser?"You're on the clock":"On the clock"]),
+      el("span",{class:"name"},[team.name])
+    ]));
+  }
+  if(state.sleeperSyncActive){
+    var pillText = state.sleeperSyncNote ? "⏳ "+state.sleeperSyncNote
+      : state.sleeperSyncError ? "⚠ "+state.sleeperSyncError
+      : !pick ? "🔄 Synced with Sleeper — draft complete"
+      : "🔄 Live-synced with Sleeper";
+    clockBar.appendChild(el("div",{id:"sleeperSyncPill", class:"sync-pill"+(state.sleeperSyncError?" warn":"")},[
+      el("span",{},[pillText]),
+      el("button",{class:"btn btn-sm btn-ghost", type:"button", onclick:function(){ stopSleeperSync(); renderDraft(); }},["Stop Sync"])
+    ]));
+  }
+  document.getElementById("btnUndo").disabled = !(state.draft.picks.length > 0) || state.sleeperSyncActive;
+}
+
+function renderDraft(){
+  var root = document.getElementById("view-draft");
+  clear(root);
+  document.getElementById("view-setup").hidden = true;
+  root.hidden = false;
+  renderTopbar();
+  ensureSleeperPolling();
+
+  var layout = el("div",{class:"draft-layout"});
+  var main = el("div",{class:"draft-main"});
+  var tabs = el("div",{class:"tabs"},[
+    el("button",{class:"tab"+(state.activeTab==="players"?" active":""), onclick:function(){ state.activeTab="players"; renderDraft(); }},["Player Pool"]),
+    el("button",{class:"tab"+(state.activeTab==="board"?" active":""), onclick:function(){ state.activeTab="board"; renderDraft(); }},["Draft Board"])
+  ]);
+  main.appendChild(tabs);
+
+  if(state.activeTab === "players") renderPlayerPool(main);
+  else renderBoardGrid(main);
+
+  layout.appendChild(main);
+  layout.appendChild(renderRail());
+  root.appendChild(layout);
+}
+
+var poolFilter = { pos:"ALL", q:"", hideDrafted:true };
+
+function renderPlayerPool(container){
+  var toolbar = el("div",{class:"toolbar"});
+  var search = el("input",{class:"search-input", type:"text", placeholder:"Search players…", value:poolFilter.q, oninput:function(e){ poolFilter.q = e.target.value; renderPoolTable(); }});
+  toolbar.appendChild(search);
+  var posFilters = el("div",{class:"pos-filters"});
+  ["ALL"].concat(POSITIONS).forEach(function(p){
+    posFilters.appendChild(el("button",{class:"pos-filter"+(poolFilter.pos===p?" active":""), onclick:function(){ poolFilter.pos=p; renderPoolTable(); }},[p]));
+  });
+  toolbar.appendChild(posFilters);
+  toolbar.appendChild(el("label",{class:"check-inline"},[
+    el("input",{type:"checkbox", checked: poolFilter.hideDrafted?"checked":null, onchange:function(e){ poolFilter.hideDrafted=e.target.checked; renderPoolTable(); }}),
+    "Hide drafted"
+  ]));
+  container.appendChild(toolbar);
+
+  var tableHost = el("div",{class:"preview-wrap"});
+  container.appendChild(tableHost);
+
+  function renderPoolTable(){
+    clear(tableHost);
+    var pick = currentPick();
+    var overall = pick ? pick.overall : null;
+    var list = state.players.slice().sort(function(a,b){ return (a.rank||9999)-(b.rank||9999); });
+    if(poolFilter.pos !== "ALL") list = list.filter(function(p){ return p.pos === poolFilter.pos; });
+    if(poolFilter.q.trim()) {
+      var q = poolFilter.q.trim().toLowerCase();
+      list = list.filter(function(p){ return p.name.toLowerCase().indexOf(q) > -1 || (p.team||"").toLowerCase().indexOf(q) > -1; });
+    }
+    if(poolFilter.hideDrafted) list = list.filter(function(p){ return !p.drafted && !p.offBoard; });
+
+    var table = el("table",{},[
+      el("thead",{},[el("tr",{},["Player","Pos","Team","Bye","Rank","ADP","Value","Tier",""].map(function(h){return el("th",{},[h]);}))])
+    ]);
+    var tbody = el("tbody",{});
+    var lastTierKey = null;
+    list.forEach(function(p){
+      var tierVal = p.tier !== null && p.tier !== undefined ? p.tier : p.autoTier;
+      var tierKey = p.pos + "|" + tierVal;
+      if(tierVal !== undefined && tierKey !== lastTierKey){
+        var label = poolFilter.pos === "ALL" ? (p.pos + " · Tier " + tierVal) : ("Tier " + tierVal);
+        tbody.appendChild(el("tr",{class:"tier-row"},[el("td",{colspan:"9"},[label])]));
+        lastTierKey = tierKey;
+      }
+      var delta = (p.adp && overall) ? Math.round(p.adp - overall) : null;
+      var deltaCell;
+      if(delta === null) deltaCell = el("td",{class:"tabular delta-zero"},["—"]);
+      else if(delta > 0) deltaCell = el("td",{class:"tabular delta-pos"},["+"+delta]);
+      else if(delta < 0) deltaCell = el("td",{class:"tabular delta-neg"},[String(delta)]);
+      else deltaCell = el("td",{class:"tabular delta-zero"},["0"]);
+
+      var row = el("tr",{class:"player-row"+((p.drafted||p.offBoard)?" drafted":"")},[
+        el("td",{},[el("span",{class:"player-name"},[p.name]), p.team?el("span",{class:"player-team"},[p.team]):null]),
+        el("td",{},[el("span",{class:"pos-chip pos-"+p.pos},[p.pos])]),
+        el("td",{},[p.team||"—"]),
+        el("td",{class:"tabular"},[p.bye||"—"]),
+        el("td",{class:"tabular"},[p.rank!=null?String(p.rank):"—"]),
+        el("td",{class:"tabular"},[p.adp!=null?p.adp.toFixed(1):"—"]),
+        deltaCell,
+        el("td",{class:"tabular"},[tierVal!==undefined?String(tierVal):"—"]),
+        el("td",{},[
+          p.drafted
+            ? el("span",{class:"help"},["Rd "+(pickRoundFor(p.draftedOverall))+" · "+teamNameForOverall(p.draftedOverall)])
+            : p.offBoard
+              ? el("span",{class:"help"},["Already rostered (dynasty)"])
+              : state.sleeperSyncActive
+                ? el("span",{class:"help"},["Waiting on Sleeper…"])
+                : el("button",{class:"btn btn-sm btn-primary", onclick:function(){ makePick(p.id); }},["Draft"])
+        ])
+      ]);
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    tableHost.appendChild(table);
+    if(!list.length) tableHost.appendChild(el("div",{class:"empty-state"},["No players match."]));
+  }
+  renderPoolTable();
+}
+
+function pickRoundFor(overall){
+  var found = state.draft.order.find(function(o){ return o.overall === overall; });
+  return found ? found.round : "—";
+}
+function teamNameForOverall(overall){
+  var pickRec = state.draft.picks.find(function(p){ return p.overall === overall; });
+  if(!pickRec) return "—";
+  return state.teams[pickRec.teamIndex].name;
+}
+
+function renderBoardGrid(container){
+  var wrap = el("div",{class:"board-scroll"});
+  var table = el("table",{class:"board-grid"});
+  var thead = el("thead",{},[el("tr",{},[el("th",{class:"rnd-col"},["Rd"])].concat(state.teams.map(function(t){
+    return el("th",{class:"team-col"+(t.isUser?" is-you":"")},[t.name + (t.isUser?" (You)":"")]);
+  })))]);
+  table.appendChild(thead);
+  var tbody = el("tbody",{});
+  var rounds = state.draft.order.length ? state.draft.order[state.draft.order.length-1].round : totalRounds(state.league);
+  var pick = currentPick();
+  for(var r=1;r<=rounds;r++){
+    var tr = el("tr",{},[el("td",{class:"rnd-col tabular"},[String(r)])]);
+    state.teams.forEach(function(team){
+      var order = state.draft.order.find(function(o){ return o.round===r && o.teamIndex===team.index; });
+      var pickRec = order ? state.draft.picks.find(function(p){ return p.overall === order.overall; }) : null;
+      var isClock = pick && order && pick.overall === order.overall;
+      var cell;
+      if(pickRec){
+        var player = playerById(pickRec.playerId);
+        cell = el("td",{class:"board-cell filled"},[
+          el("div",{class:"board-pick"},[
+            el("span",{class:"pick-no"},["#"+order.overall]),
+            el("span",{class:"nm"},[player?player.name:"—"]),
+            el("span",{class:"meta"},[player?el("span",{class:"pos-chip pos-"+player.pos},[player.pos]):null, player&&player.team?player.team:null])
+          ])
+        ]);
+      } else {
+        cell = el("td",{class:"board-cell"+(isClock?" on-clock":"")},[
+          order ? el("div",{class:"empty-cell"},["#"+order.overall + (isClock?" — on the clock":"")]) : ""
+        ]);
+      }
+      tr.appendChild(cell);
+    });
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  container.appendChild(wrap);
+}
+
+function renderRail(){
+  var rail = el("div",{class:"rail"});
+  var pick = currentPick();
+
+  var recCard = el("div",{class:"card card-pad"});
+  recCard.appendChild(el("div",{class:"eyebrow"},["Recommendations"]));
+  if(!pick){
+    recCard.appendChild(el("div",{class:"empty-state"},["Draft complete — nice work."]));
+  } else {
+    var team = state.teams[pick.teamIndex];
+    recCard.appendChild(el("h3",{style:"font-size:16px;margin-bottom:10px;"},[team.isUser ? "For your pick" : "For "+team.name]));
+    var recs = recommendationsForTeam(pick.teamIndex, 6);
+    if(!recs.length) recCard.appendChild(el("div",{class:"empty-state"},["No players left to recommend."]));
+    recs.forEach(function(r, i){
+      recCard.appendChild(el("div",{class:"rec-card"},[
+        el("div",{class:"rec-top"},[
+          el("span",{class:"rec-rank tabular"},[String(i+1)]),
+          el("span",{class:"pos-chip pos-"+r.player.pos},[r.player.pos]),
+          el("span",{class:"rec-name"},[r.player.name])
+        ]),
+        el("div",{class:"rec-why"}, r.tags.map(function(t){ return el("span",{class:"why-tag "+t.cls},[t.t]); })),
+        state.sleeperSyncActive ? null : el("button",{class:"btn btn-sm btn-primary rec-draft-btn", onclick:function(){ makePick(r.player.id); }},["Draft "+r.player.name.split(" ")[0]])
+      ]));
+    });
+  }
+  rail.appendChild(recCard);
+
+  var rosterCard = el("div",{class:"card card-pad"});
+  var userTeam = state.teams.find(function(t){ return t.isUser; });
+  rosterCard.appendChild(el("div",{class:"eyebrow"},["Your Roster"]));
+  rosterCard.appendChild(el("h3",{style:"font-size:16px;margin-bottom:10px;"},[userTeam.name]));
+
+  if(userTeam.positionNeed){
+    rosterCard.appendChild(el("div",{class:"roster-subhead", style:"margin-top:0;"},["Roster needs (live from Sleeper)"]));
+    var needGrid = el("div",{class:"need-grid"});
+    POSITIONS.forEach(function(p){
+      var tier = userTeam.positionNeed[p];
+      if(!tier) return;
+      needGrid.appendChild(el("div",{class:"need-row"},[
+        el("span",{class:"slot"},[p]),
+        el("span",{class:"count"},[String((userTeam.realRosterCounts&&userTeam.realRosterCounts[p])||0)+" rostered"]),
+        el("span",{class:"need-pill "+tier},[tier==="critical"?"Critical":tier==="thin"?"Thin":"Good"])
+      ]));
+    });
+    rosterCard.appendChild(needGrid);
+    rosterCard.appendChild(el("div",{class:"roster-subhead"},["Picked this draft"]));
+  }
+
+  var slots = computeTeamRoster(userTeam.index);
+  var picked = slots.filter(function(s){ return s.player; });
+  if(userTeam.positionNeed && !picked.length){
+    rosterCard.appendChild(el("div",{class:"help"},["No picks yet this draft."]));
+  } else {
+    var mini = el("div",{class:"roster-mini"});
+    (userTeam.positionNeed ? picked : slots).forEach(function(s){
+      mini.appendChild(el("div",{class:"roster-mini-row"+(s.player?"":" open")},[
+        el("span",{class:"slot"},[s.type]),
+        el("span",{class:"who"},[s.player ? s.player.name : "— open —"])
+      ]));
+    });
+    rosterCard.appendChild(mini);
+  }
+  rail.appendChild(rosterCard);
+
+  return rail;
+}
+
+/* ============================== APP SHELL ============================== */
+function renderApp(){
+  saveState();
+  if(state.screen === "draft" && state.draft){
+    renderDraft();
+  } else {
+    renderSetup();
+  }
+}
+
+document.getElementById("btnUndo").addEventListener("click", undoPick);
+document.getElementById("btnSettings").addEventListener("click", function(){
+  state.screen = "setup"; state.setupStep = 1; saveState(); renderApp();
+});
+document.getElementById("btnReset").addEventListener("click", function(){
+  if(!confirm("Reset the entire draft? Your league format and imported players will stay, but every pick will be cleared.")) return;
+  state.players.forEach(function(p){ p.drafted=false; p.draftedOverall=null; });
+  startDraft();
+});
+document.getElementById("btnNewDraft").addEventListener("click", function(){
+  if(!confirm("Start a brand new draft? This clears your league setup, imported rankings, and all picks — use this to switch to a different league or draft entirely.")) return;
+  stopSleeperSync();
+  state = defaultState();
+  saveState();
+  renderApp();
+});
+
+/* ============================== INIT ============================== */
+state = loadState() || defaultState();
+if(!state.league) state.league = defaultLeague();
+renderApp();
+
+})();
+</script>
