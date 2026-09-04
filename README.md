@@ -10,12 +10,14 @@
 
 ## Features
 
-- **League setup** — scoring (Standard / Half / Full / Custom PPR), roster construction (QB/RB/WR/TE/FLEX/Superflex/K/D-ST/Bench), snake or linear draft, third-round reversal.
+- **League setup** — scoring (Standard / Half / Full / Custom PPR), roster construction (QB/RB/WR/TE/FLEX/Superflex/K/D-ST/Bench), snake, linear, or auction draft, third-round reversal.
 - **Import from Sleeper** — enter a username to pull your league's format, roster construction, and team names live. Falls back to a manual copy/paste flow if a live connection isn't available (e.g. when embedded somewhere that can't reach Sleeper's API directly).
 - **Rankings import** — paste or upload a CSV (comma or tab separated, works with a table copied straight out of a browser). Auto-detects common columns including FantasyLife's `Consensus` rank and `Utilization Score`. Save any import as a named set (e.g. "Dynasty PPR", "Redraft Half-PPR") and reuse it instantly next time — stored server-side so it survives restarts and is shared across every device that opens the app.
 - **Live draft board** — round-by-round grid, searchable/filterable player pool, tier breaks, value-vs-ADP.
 - **Recommendations** — best-available, positional need, scarcity/cliff warnings, and value, all shown with plain-language reasons.
-- **Live Sleeper sync** — for an in-progress Sleeper draft, picks apply automatically as they happen. For dynasty leagues, it also pulls every team's actual current roster so recommendations reflect real positional needs (not just picks made in the current draft) and already-rostered players are correctly excluded from "available."
+- **Live Sleeper sync** — for an in-progress snake/linear Sleeper draft, picks apply automatically as they happen. For dynasty leagues, it also pulls every team's actual current roster so recommendations reflect real positional needs (not just picks made in the current draft) and already-rostered players are correctly excluded from "available."
+- **Auction drafts** — set a per-team budget, nominate players, and record winning bids as the draft happens. Shows a suggested max bid for whoever's currently on the block (based on remaining league-wide budget, roster needs, and how the player ranks against what's left at their position), plus every team's remaining budget and a running sale log. Manual entry only for now — live-sync from an in-progress Sleeper auction isn't supported yet.
+- **Manual theme toggle** — follows your system's light/dark setting by default; tap the toggle (top-right corner) to force light or dark regardless of system setting.
 
 ## Quick start (Docker Compose)
 
@@ -51,9 +53,10 @@ Template URL (for Unraid's template-from-URL flow, if your setup supports it):
 
 ## Notes
 
-- Auction drafts aren't supported yet — snake and linear only.
 - Live Sleeper sync (auto-picks, league import, dynasty roster needs) needs the page to be able to reach `api.sleeper.app` directly from the browser. This works when self-hosted; a page embedded somewhere that blocks outbound requests will fall back to manual copy/paste import instead.
+- Live Sleeper sync only covers snake and linear drafts — auction drafts are manual-entry only for now.
 - Draft-in-progress state lives in the browser (`localStorage`), scoped per device/browser. Saved rankings sets are the one thing stored server-side, so they're the only thing shared across devices.
+- If you set the `WRITE_TOKEN` environment variable on the server to protect saved rankings from being overwritten by anyone who can reach the app (see `docker-compose.yml`), enter the same value under "Server API token" on the Import Rankings step so your browser can still save/update sets.
 
 ## License
 

@@ -7,3 +7,7 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+    # environment:
+    #   # Optional: require this token on any request that writes to the saved rankings library.
+    #   # If set, enter the same value under "Server API token" on the app's Import Rankings step.
+    #   - WRITE_TOKEN=change-me

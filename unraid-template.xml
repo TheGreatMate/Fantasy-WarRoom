@@ -14,4 +14,5 @@
   <Icon>https://raw.githubusercontent.com/TheGreatMate/Fantasy-WarRoom/master/icon.png</Icon>
   <Config Name="WebUI Port" Target="8934" Default="8934" Mode="tcp" Description="Port to access War Room" Type="Port" Display="always" Required="true" Mask="false">8934</Config>
   <Config Name="Data" Target="/app/data" Default="/mnt/user/appdata/fantasy-warroom" Mode="rw" Description="Saved rankings library (survives restarts/updates)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/fantasy-warroom</Config>
+  <Config Name="WRITE_TOKEN" Target="WRITE_TOKEN" Default="" Mode="" Description="Optional: require this token on any request that writes to the saved rankings library. Leave blank to disable. If set, enter the same value under &quot;Server API token&quot; on the app's Import Rankings step." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
 </Container>

@@ -387,13 +387,39 @@ tr:last-child td{border-bottom:none;}
   .pool-table td:nth-child(5)::before{content:"Rank ";color:var(--text-faint);}
   .pool-table td:nth-child(7){display:inline-block;margin-right:10px;font-size:12.5px;}
   .pool-table td:nth-child(7)::before{content:"vADP ";color:var(--text-faint);}
+  .pool-table.auction td:nth-child(7)::before{content:"Est ";color:var(--text-faint);}
   .pool-table td:nth-child(9){display:inline-block;font-size:12.5px;color:var(--text-muted);}
   .pool-table td:nth-child(9)::before{content:"Util ";color:var(--text-faint);}
   .pool-table td:nth-child(10){display:block;margin-top:6px;font-size:13px;}
   .pool-table td:nth-child(10) .btn{width:100%;justify-content:center;}
   .pool-table tr.tier-row{display:block;}
   .pool-table tr.tier-row td{display:block;}
+
+  /* CSV import preview: same collapse-to-card treatment, fewer columns */
+  .csv-preview-table thead{display:none;}
+  .csv-preview-table, .csv-preview-table tbody{display:block;}
+  .csv-preview-table tr{display:block;padding:8px 4px;border-bottom:1px solid var(--border);}
+  .csv-preview-table td{padding:2px 0;border:none;}
+  .csv-preview-table td:nth-child(3), .csv-preview-table td:nth-child(6), .csv-preview-table td:nth-child(7){display:none;}
+  .csv-preview-table td:nth-child(1){display:block;font-weight:700;font-size:13.5px;}
+  .csv-preview-table td:nth-child(2){display:inline-block;margin-right:10px;font-size:12px;color:var(--text-muted);}
+  .csv-preview-table td:nth-child(4){display:inline-block;margin-right:10px;font-size:12px;color:var(--text-muted);}
+  .csv-preview-table td:nth-child(4)::before{content:"Rank ";color:var(--text-faint);}
+  .csv-preview-table td:nth-child(5){display:inline-block;font-size:12px;color:var(--text-muted);}
+  .csv-preview-table td:nth-child(5)::before{content:"ADP ";color:var(--text-faint);}
+  .csv-preview-table td:nth-child(8){display:inline-block;margin-left:10px;font-size:12px;color:var(--text-muted);}
+  .csv-preview-table td:nth-child(8)::before{content:"Util ";color:var(--text-faint);}
 }
+
+/* ---------- Theme toggle ---------- */
+.theme-toggle{
+  position:fixed; top:12px; right:12px; z-index:80; width:36px; height:36px; border-radius:50%;
+  background:var(--glass-bg); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; padding:0;
+  box-shadow:var(--shadow);
+}
+@media (max-width:640px){ .theme-toggle{top:8px; right:8px; width:32px; height:32px; font-size:14px;} }
+#topbar:not([hidden]) ~ .theme-toggle{display:none;}
 </style>
 </head>
 <body>
@@ -409,6 +435,7 @@ tr:last-child td{border-bottom:none;}
       <div class="overflow-wrap" id="overflowWrap">
         <button class="btn btn-sm btn-ghost overflow-btn" id="btnOverflowToggle" aria-haspopup="true" aria-expanded="false" aria-label="More actions">⋯</button>
         <div class="overflow-menu" id="overflowMenu" hidden>
+          <button class="btn-ghost" id="btnTheme">Theme: <span id="btnThemeLabel">Auto</span></button>
           <button class="btn-ghost" id="btnSettings">League Settings</button>
           <button class="btn-ghost btn-danger-text" id="btnReset">Reset Draft</button>
           <button class="btn-ghost btn-danger-text" id="btnNewDraft">New Draft…</button>
@@ -417,6 +444,8 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
 </div>
+
+<button class="theme-toggle" id="btnThemeFloat" type="button" aria-label="Change theme" title="Change theme">◐</button>
 
 <div class="app">
 
@@ -435,6 +464,29 @@ var POSITIONS = ["QB","RB","WR","TE","K","DST"];
 var FLEX_ELIGIBLE = ["RB","WR","TE"];
 var SFLEX_ELIGIBLE = ["QB","RB","WR","TE"];
 
+/* ============================== THEME ============================== */
+var THEME_KEY = "warroom_theme";
+var THEME_ORDER = ["auto","light","dark"];
+var THEME_LABEL = {auto:"Auto", light:"Light", dark:"Dark"};
+var THEME_ICON = {auto:"◐", light:"☀", dark:"☾"};
+function getTheme(){
+  try{ var t = localStorage.getItem(THEME_KEY); return THEME_ORDER.indexOf(t) > -1 ? t : "auto"; }catch(e){ return "auto"; }
+}
+function applyTheme(t){
+  if(t === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  var label = document.getElementById("btnThemeLabel");
+  if(label) label.textContent = THEME_LABEL[t];
+  var floatBtn = document.getElementById("btnThemeFloat");
+  if(floatBtn) floatBtn.textContent = THEME_ICON[t];
+}
+function cycleTheme(){
+  var t = THEME_ORDER[(THEME_ORDER.indexOf(getTheme()) + 1) % THEME_ORDER.length];
+  try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  applyTheme(t);
+}
+applyTheme(getTheme());
+
 function defaultLeague(){
   return {
     name: "My League",
@@ -444,6 +496,7 @@ function defaultLeague(){
     roster: { QB:1, RB:2, WR:2, TE:1, FLEX:1, SFLEX:0, K:1, DST:1, BENCH:6 },
     draftType: "snake",
     trr: false,
+    auctionBudget: 200,
     userTeamIndex: 0
   };
 }
@@ -458,6 +511,7 @@ function defaultState(){
     columnMap: null,
     rawCsvPreview: null,
     draft: null,                // { order, currentIndex, picks: [] }
+    auction: null,               // { budgets, nominationTeamIndex, nomination, seq } — only set when league.draftType === "auction"
     sleeperSyncActive: false,
     sleeperDraftId: null,
     sleeperSyncError: null,
@@ -480,6 +534,7 @@ function saveState(){
 }
 
 var RANKING_LIBRARY_KEY = "warroom_ranking_library_v1";
+var API_TOKEN_KEY = "warroom_api_token";
 function loadRankingLibraryLocal(){
   try{ return JSON.parse(localStorage.getItem(RANKING_LIBRARY_KEY)) || []; }catch(e){ return []; }
 }
@@ -495,7 +550,9 @@ function loadRankingLibrary(){
   }).catch(function(){ return loadRankingLibraryLocal(); });
 }
 function saveRankingLibrary(lib){
-  return fetch("/api/rankings", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(lib) })
+  var headers = {"Content-Type":"application/json"};
+  try{ var tok = localStorage.getItem(API_TOKEN_KEY); if(tok) headers["X-Api-Token"] = tok; }catch(e){}
+  return fetch("/api/rankings", { method:"POST", headers:headers, body: JSON.stringify(lib) })
     .then(function(r){ if(!r.ok) throw new Error("bad status"); })
     .catch(function(){ saveRankingLibraryLocal(lib); });
 }
@@ -780,6 +837,7 @@ function makePick(playerId, teamIndexOverride, isKeeper){
   renderDraft();
 }
 function undoPick(){
+  if(state.league.draftType === "auction"){ undoLastSale(); return; }
   if(!state.draft || state.draft.picks.length === 0) return;
   var last = state.draft.picks.pop();
   var player = playerById(last.playerId);
@@ -1200,6 +1258,12 @@ function renderStepLeague(container){
           el("input",{type:"radio",name:"dtype",onchange:function(){ lg.draftType="linear"; renderStepLeague(container); }}),
           "Linear"
         ]); return chip;
+      })(),
+      (function(){
+        var chip = el("label",{class:"radio-chip"+(lg.draftType==="auction"?" checked":"")},[
+          el("input",{type:"radio",name:"dtype",onchange:function(){ lg.draftType="auction"; renderStepLeague(container); }}),
+          "Auction"
+        ]); return chip;
       })()
     ])
   ]));
@@ -1208,6 +1272,14 @@ function renderStepLeague(container){
     var trrRow = switchRow("Third-round reversal", lg.trr, function(e){ lg.trr = e.target.checked; });
     trrRow.style.maxWidth = "320px"; trrRow.style.marginBottom = "18px";
     container.appendChild(trrRow);
+  }
+
+  if(lg.draftType === "auction"){
+    container.appendChild(el("div",{class:"field", style:"max-width:200px;margin-bottom:18px;"},[
+      el("label",{},["Budget per team"]),
+      el("input",{type:"number", min:"1", value:String(lg.auctionBudget||200), oninput:function(e){ lg.auctionBudget = Math.max(1, parseInt(e.target.value,10)||200); }})
+    ]));
+    container.appendChild(el("div",{class:"help", style:"margin:-12px 0 18px;"},["Every team starts an auction draft with this many dollars to bid with."]));
   }
 
   container.appendChild(el("h3",{class:"section-title", style:"font-size:16px;margin:6px 0 4px;"},["Roster construction"]));
@@ -1274,6 +1346,22 @@ function renderStepImport(container){
   container.appendChild(el("div",{class:"section-sub"},[
     "Paste a rankings table (from a CSV, spreadsheet, or copied straight out of a browser table) or upload a file. Tab- and comma-separated both work."
   ]));
+
+  var tokenDetails = el("details",{style:"margin-bottom:16px;"});
+  tokenDetails.appendChild(el("summary",{style:"cursor:pointer;font-size:12.5px;color:var(--text-muted);font-weight:600;"},["Server API token (only if you've set WRITE_TOKEN)"]));
+  var tokenBody = el("div",{style:"margin-top:10px;max-width:340px;"});
+  var storedToken = ""; try{ storedToken = localStorage.getItem(API_TOKEN_KEY) || ""; }catch(e){}
+  var tokenInput = el("input",{type:"password", placeholder:"Leave blank if you haven't set one", value: storedToken});
+  tokenInput.addEventListener("input", function(e){
+    try{
+      var v = e.target.value.trim();
+      if(v) localStorage.setItem(API_TOKEN_KEY, v); else localStorage.removeItem(API_TOKEN_KEY);
+    }catch(err){}
+  });
+  tokenBody.appendChild(el("div",{class:"field"},[el("label",{},["API token"]), tokenInput]));
+  tokenBody.appendChild(el("div",{class:"help", style:"margin-top:4px;"},["Only needed if you set the WRITE_TOKEN environment variable on your server to stop anyone who can reach the app from overwriting your saved rankings. Stored only in this browser, sent only when saving a ranking set."]));
+  tokenDetails.appendChild(tokenBody);
+  container.appendChild(tokenDetails);
 
   var libHost = el("div",{});
   container.appendChild(libHost);
@@ -1385,7 +1473,7 @@ function renderStepImport(container){
       ]);
       previewHost.appendChild(summary);
 
-      var table = el("table",{},[
+      var table = el("table",{class:"csv-preview-table"},[
         el("thead",{},[el("tr",{},["Player","Pos","Team","Rank","ADP","Tier","Bye","Util"].map(function(h){return el("th",{},[h]);}))]),
         el("tbody",{}, dataRows.slice(0,8).map(function(r){
           return el("tr",{},[
@@ -1463,7 +1551,10 @@ function renderReadyStep(container, count){
   ]));
 
   var lg = state.league;
-  if(lg._sleeperDraftId && lg._sleeperLive){
+  var canLiveSync = lg._sleeperDraftId && lg._sleeperLive && lg.draftType !== "auction";
+  if(lg._sleeperDraftId && lg._sleeperLive && lg.draftType === "auction"){
+    container.appendChild(el("div",{class:"help", style:"max-width:360px;margin:0 auto 10px;text-align:center;"},["Live-sync from Sleeper isn't available for auction drafts yet — you'll enter nominations and winning bids manually as the draft happens."]));
+  } else if(canLiveSync){
     var syncRow = switchRow("Live-sync picks from this Sleeper draft as we go", lg._sleeperSyncEnabled !== false, function(e){ lg._sleeperSyncEnabled = e.target.checked; });
     syncRow.style.maxWidth = "360px"; syncRow.style.margin = "0 auto 10px";
     container.appendChild(syncRow);
@@ -1472,7 +1563,7 @@ function renderReadyStep(container, count){
   container.appendChild(el("div",{class:"wizard-nav"},[
     el("button",{class:"btn", onclick:function(){ state.setupStep = 2; renderSetup(); }},["← Back to Import"]),
     el("button",{class:"btn btn-primary", onclick:function(){
-      if(lg._sleeperDraftId && lg._sleeperLive && lg._sleeperSyncEnabled !== false) startLiveSleeperDraft();
+      if(canLiveSync && lg._sleeperSyncEnabled !== false) startLiveSleeperDraft();
       else startDraft();
     }},["Start the Draft →"])
   ]));
@@ -1486,16 +1577,94 @@ function startDraft(roundsOverride){
     state.teams.push({ index:i, name: (lg._teamNames && lg._teamNames[i]) || ("Team "+(i+1)), isUser: i===lg.userTeamIndex, sleeperUserId: (lg._teamSleeperUserIds && lg._teamSleeperUserIds[i]) || null });
   }
   var rounds = roundsOverride || totalRounds(lg);
-  state.draft = {
-    order: buildDraftOrder(lg.numTeams, rounds, lg.draftType, lg.trr),
-    currentIndex: 0,
-    picks: []
-  };
+  if(lg.draftType === "auction"){
+    state.draft = { order: [], currentIndex: 0, picks: [] };
+    state.auction = {
+      budgets: state.teams.map(function(){ return lg.auctionBudget; }),
+      nominationTeamIndex: 0,
+      nomination: null,
+      seq: 0
+    };
+  } else {
+    state.draft = {
+      order: buildDraftOrder(lg.numTeams, rounds, lg.draftType, lg.trr),
+      currentIndex: 0,
+      picks: []
+    };
+    state.auction = null;
+  }
   state.players.forEach(function(p){ p.drafted=false; p.draftedOverall=null; });
   state.screen = "draft";
   state.activeTab = "players";
   saveState();
   renderApp();
+}
+
+/* ============================== AUCTION DRAFTS ============================== */
+function auctionOpenSlotCount(teamIndex){
+  return computeTeamRoster(teamIndex).filter(function(s){ return !s.player; }).length;
+}
+// A team must keep at least $1 per remaining OTHER roster slot, so they can still fill their roster.
+function auctionMaxBid(teamIndex){
+  var budget = state.auction.budgets[teamIndex];
+  var reserve = Math.max(0, auctionOpenSlotCount(teamIndex) - 1);
+  return Math.max(0, budget - reserve);
+}
+// Rough $-value heuristic: league's total spendable budget (after reserving $1/slot for every
+// remaining roster spot league-wide), spread across remaining starter-caliber slots, scaled by
+// the player's percentile rank within their own position group.
+function auctionSuggestedBid(player){
+  var lg = state.league;
+  var totalSlots = totalRounds(lg) * lg.numTeams;
+  var filledSlots = state.draft.picks.length;
+  var openSlots = Math.max(1, totalSlots - filledSlots);
+  var totalBudgetLeft = state.auction.budgets.reduce(function(a,b){ return a+b; }, 0);
+  var spendable = Math.max(0, totalBudgetLeft - openSlots); // reserve $1/slot league-wide
+  var perSlot = spendable / openSlots;
+
+  var samePos = state.players.filter(function(p){ return p.pos === player.pos && !p.drafted && !p.offBoard; })
+    .sort(function(a,b){ return (a.rank||9999)-(b.rank||9999); });
+  var idx = samePos.indexOf(player);
+  var pctile = samePos.length > 1 ? 1 - (idx / (samePos.length - 1)) : 1; // 1 = best left at the position, 0 = worst
+  var multiplier = 0.15 + pctile * 2.6; // even the worst starters left keep a little value; the best get a big multiple of the average slot price
+
+  return Math.max(1, Math.round(perSlot * multiplier));
+}
+function nominatePlayer(playerId){
+  if(!state.auction || state.auction.nomination) return;
+  var player = playerById(playerId);
+  if(!player || player.drafted || player.offBoard) return;
+  state.auction.nomination = { playerId: playerId };
+  saveState(); renderDraft();
+}
+function cancelNomination(){
+  if(!state.auction) return;
+  state.auction.nomination = null;
+  saveState(); renderDraft();
+}
+function confirmSale(teamIndex, price){
+  var nom = state.auction && state.auction.nomination;
+  if(!nom) return;
+  var player = playerById(nom.playerId);
+  if(!player || player.drafted) return;
+  price = Math.max(1, Math.round(price || 1));
+  if(price > state.auction.budgets[teamIndex]) return;
+  state.auction.seq++;
+  player.drafted = true; player.offBoard = false; player.draftedOverall = state.auction.seq;
+  state.draft.picks.push({ overall: state.auction.seq, round:null, pickInRound:null, teamIndex:teamIndex, playerId: nom.playerId, isKeeper:false, price: price });
+  state.auction.budgets[teamIndex] -= price;
+  state.auction.nomination = null;
+  state.auction.nominationTeamIndex = (state.auction.nominationTeamIndex + 1) % state.teams.length;
+  saveState(); renderDraft();
+}
+function undoLastSale(){
+  if(!state.auction || !state.draft.picks.length) return;
+  var last = state.draft.picks.pop();
+  var player = playerById(last.playerId);
+  if(player){ player.drafted = false; player.draftedOverall = null; }
+  state.auction.budgets[last.teamIndex] += (last.price || 0);
+  state.auction.seq = Math.max(0, state.auction.seq - 1);
+  saveState(); renderDraft();
 }
 
 /* ============================== LIVE SLEEPER DRAFT SYNC ============================== */
@@ -1762,8 +1931,31 @@ function renderTopbar(){
   bar.hidden = false;
   var clockBar = document.getElementById("clockBar");
   clear(clockBar);
-  var pick = currentPick();
   var lg = state.league;
+
+  if(lg.draftType === "auction"){
+    var sold = state.draft.picks.length;
+    var userTeam = state.teams.find(function(t){ return t.isUser; });
+    var totalSlots = totalRounds(lg) * lg.numTeams;
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Sold"]), el("div",{class:"value tabular"},[sold+" / "+totalSlots])]));
+    clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Your budget"]), el("div",{class:"value tabular"},["$"+state.auction.budgets[userTeam.index]])]));
+    if(state.auction.nomination){
+      var nomPlayer = playerById(state.auction.nomination.playerId);
+      clockBar.appendChild(el("div",{class:"clock-team on-user", "data-static":"1"},[
+        el("span",{style:"font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;"},["On the block"]),
+        el("span",{class:"name"},[nomPlayer ? nomPlayer.name : "…"])
+      ]));
+    } else {
+      clockBar.appendChild(el("div",{class:"clock-team"},[
+        el("span",{style:"font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;"},["Suggested to nominate"]),
+        el("span",{class:"name"},[state.teams[state.auction.nominationTeamIndex].name])
+      ]));
+    }
+    document.getElementById("btnUndo").disabled = state.draft.picks.length === 0;
+    return;
+  }
+
+  var pick = currentPick();
   if(!pick){
     clockBar.appendChild(el("div",{class:"clock-stat"},[el("div",{class:"label"},["Status"]), el("div",{class:"value"},["Draft complete"])]));
   } else {
@@ -1799,27 +1991,28 @@ function renderDraft(){
 
   state.mobileView = state.mobileView || "main";
 
+  var isAuction = state.league.draftType === "auction";
   var layout = el("div",{class:"draft-layout", "data-mobile-view":state.mobileView});
   var main = el("div",{class:"draft-main"});
   var tabs = el("div",{class:"tabs main-tabs"},[
-    el("button",{class:"tab"+(state.activeTab==="players"?" active":""), onclick:function(){ state.activeTab="players"; state.mobileView="main"; renderDraft(); }},["Player Pool"]),
-    el("button",{class:"tab"+(state.activeTab==="board"?" active":""), onclick:function(){ state.activeTab="board"; state.mobileView="main"; renderDraft(); }},["Draft Board"])
+    el("button",{class:"tab"+(state.activeTab==="players"?" active":""), onclick:function(){ state.activeTab="players"; state.mobileView="main"; renderDraft(); }},[isAuction?"Nominate":"Player Pool"]),
+    el("button",{class:"tab"+(state.activeTab==="board"?" active":""), onclick:function(){ state.activeTab="board"; state.mobileView="main"; renderDraft(); }},[isAuction?"Sale Log":"Draft Board"])
   ]);
   main.appendChild(tabs);
 
-  if(state.activeTab === "players") renderPlayerPool(main);
-  else renderBoardGrid(main);
+  if(state.activeTab === "players") (isAuction ? renderAuctionPool : renderPlayerPool)(main);
+  else (isAuction ? renderAuctionLog : renderBoardGrid)(main);
 
   layout.appendChild(main);
-  layout.appendChild(renderRail());
+  layout.appendChild(isAuction ? renderAuctionRail() : renderRail());
   root.appendChild(layout);
 
   root.appendChild(el("nav",{class:"mobile-tabbar"},[
     el("button",{class:"mobile-tabbar-btn"+(state.mobileView==="main"&&state.activeTab==="players"?" active":""), onclick:function(){ state.activeTab="players"; state.mobileView="main"; renderDraft(); }},[
-      el("span",{class:"ico"},["☰"]), el("span",{},["Players"])
+      el("span",{class:"ico"},["☰"]), el("span",{},[isAuction?"Nominate":"Players"])
     ]),
     el("button",{class:"mobile-tabbar-btn"+(state.mobileView==="main"&&state.activeTab==="board"?" active":""), onclick:function(){ state.activeTab="board"; state.mobileView="main"; renderDraft(); }},[
-      el("span",{class:"ico"},["▦"]), el("span",{},["Board"])
+      el("span",{class:"ico"},["▦"]), el("span",{},[isAuction?"Sales":"Board"])
     ]),
     el("button",{class:"mobile-tabbar-btn"+(state.mobileView==="rail"?" active":""), onclick:function(){ state.mobileView="rail"; renderDraft(); }},[
       el("span",{class:"ico"},["★"]), el("span",{},["Recs"])
@@ -1966,6 +2159,172 @@ function renderBoardGrid(container){
   container.appendChild(wrap);
 }
 
+function renderAuctionPool(container){
+  var lg = state.league;
+  var nom = state.auction.nomination;
+
+  if(nom){
+    var nomPlayer = playerById(nom.playerId);
+    var card = el("div",{class:"card card-pad", style:"margin-bottom:16px;"});
+    card.appendChild(el("div",{class:"eyebrow"},["On the block"]));
+    card.appendChild(el("h3",{style:"font-size:20px;margin-bottom:2px;"},[
+      el("span",{class:"pos-chip pos-"+nomPlayer.pos, style:"margin-right:8px;"},[nomPlayer.pos]),
+      nomPlayer.name
+    ]));
+    card.appendChild(el("div",{class:"help", style:"margin-bottom:14px;"},[(nomPlayer.team||"—")+(nomPlayer.rank!=null?" · Rank "+nomPlayer.rank:"")]));
+
+    var suggested = auctionSuggestedBid(nomPlayer);
+    card.appendChild(el("div",{class:"help", style:"margin-bottom:10px;"},["Suggested max bid for you: ", el("strong",{},["$"+suggested]), " (see Recs for the full breakdown)"]));
+
+    var teamSel = el("select",{});
+    state.teams.forEach(function(t){
+      teamSel.appendChild(el("option",{value:String(t.index)},[t.name+(t.isUser?" (You)":"")+" — $"+state.auction.budgets[t.index]+" left"]));
+    });
+    var priceInput = el("input",{type:"number", min:"1", value:String(Math.max(1, suggested)), style:"width:100px;"});
+
+    card.appendChild(el("div",{class:"field-grid", style:"margin-bottom:0;"},[
+      el("div",{class:"field"},[el("label",{},["Winning team"]), teamSel]),
+      el("div",{class:"field"},[el("label",{},["Winning bid ($)"]), priceInput])
+    ]));
+    card.appendChild(el("div",{style:"display:flex;gap:10px;margin-top:14px;"},[
+      el("button",{class:"btn btn-primary", onclick:function(){
+        var teamIndex = parseInt(teamSel.value,10);
+        var price = parseInt(priceInput.value,10) || 1;
+        if(price > state.auction.budgets[teamIndex]){ alert("That's more than "+state.teams[teamIndex].name+" has left ($"+state.auction.budgets[teamIndex]+")."); return; }
+        confirmSale(teamIndex, price);
+      }},["Confirm sale"]),
+      el("button",{class:"btn btn-ghost", onclick:cancelNomination},["Cancel"])
+    ]));
+    container.appendChild(card);
+  } else {
+    container.appendChild(el("div",{class:"help", style:"margin-bottom:14px;"},["Search below and nominate the next player up for bid."]));
+  }
+
+  var toolbar = el("div",{class:"toolbar"});
+  var search = el("input",{class:"search-input", type:"text", placeholder:"Search players…", value:poolFilter.q, oninput:function(e){ poolFilter.q = e.target.value; renderAuctionPoolTable(); }});
+  toolbar.appendChild(search);
+  var posFilters = el("div",{class:"pos-filters"});
+  ["ALL"].concat(POSITIONS).forEach(function(p){
+    posFilters.appendChild(el("button",{class:"pos-filter"+(poolFilter.pos===p?" active":""), onclick:function(){ poolFilter.pos=p; renderAuctionPoolTable(); }},[p]));
+  });
+  toolbar.appendChild(posFilters);
+  container.appendChild(toolbar);
+
+  var tableHost = el("div",{class:"preview-wrap"});
+  container.appendChild(tableHost);
+
+  function renderAuctionPoolTable(){
+    clear(tableHost);
+    var list = availablePlayers();
+    if(poolFilter.pos !== "ALL") list = list.filter(function(p){ return p.pos === poolFilter.pos; });
+    if(poolFilter.q.trim()){
+      var q = poolFilter.q.trim().toLowerCase();
+      list = list.filter(function(p){ return p.name.toLowerCase().indexOf(q) > -1 || (p.team||"").toLowerCase().indexOf(q) > -1; });
+    }
+    var table = el("table",{class:"pool-table auction"},[
+      el("thead",{},[el("tr",{},["Player","Pos","Team","Bye","Rank","ADP","Est. $","Tier","Util",""].map(function(h){return el("th",{},[h]);}))])
+    ]);
+    var tbody = el("tbody",{});
+    list.slice(0,150).forEach(function(p){
+      var tierVal = p.tier !== null && p.tier !== undefined ? p.tier : p.autoTier;
+      tbody.appendChild(el("tr",{class:"player-row"},[
+        el("td",{},[el("span",{class:"player-name"},[p.name]), p.team?el("span",{class:"player-team"},[p.team]):null]),
+        el("td",{},[el("span",{class:"pos-chip pos-"+p.pos},[p.pos])]),
+        el("td",{},[p.team||"—"]),
+        el("td",{class:"tabular"},[p.bye||"—"]),
+        el("td",{class:"tabular"},[p.rank!=null?String(p.rank):"—"]),
+        el("td",{class:"tabular"},[p.adp!=null?p.adp.toFixed(1):"—"]),
+        el("td",{class:"tabular"},["$"+auctionSuggestedBid(p)]),
+        el("td",{class:"tabular"},[tierVal!==undefined?String(tierVal):"—"]),
+        el("td",{class:"tabular"},[p.utilization!=null?String(Math.round(p.utilization)):"—"]),
+        el("td",{},[el("button",{class:"btn btn-sm btn-primary", disabled: nom ? "disabled" : null, onclick:function(){ nominatePlayer(p.id); }},["Nominate"])])
+      ]));
+    });
+    table.appendChild(tbody);
+    tableHost.appendChild(table);
+    if(!list.length) tableHost.appendChild(el("div",{class:"empty-state"},["No players match."]));
+    else if(list.length > 150) tableHost.appendChild(el("div",{class:"help", style:"margin-top:8px;"},["Showing top 150 of "+list.length+" — search to narrow it down."]));
+  }
+  renderAuctionPoolTable();
+}
+
+function renderAuctionLog(container){
+  var picks = state.draft.picks.slice().sort(function(a,b){ return b.overall - a.overall; });
+  if(!picks.length){ container.appendChild(el("div",{class:"empty-state"},["No sales yet — nominate a player to get started."])); return; }
+  var wrap = el("div",{class:"preview-wrap"});
+  var table = el("table",{},[
+    el("thead",{},[el("tr",{},["Player","Pos","Team","Bought by","Price"].map(function(h){return el("th",{},[h]);}))])
+  ]);
+  var tbody = el("tbody",{});
+  picks.forEach(function(pick){
+    var player = playerById(pick.playerId);
+    var team = state.teams[pick.teamIndex];
+    tbody.appendChild(el("tr",{},[
+      el("td",{},[el("span",{class:"player-name"},[player?player.name:"—"])]),
+      el("td",{},[player?el("span",{class:"pos-chip pos-"+player.pos},[player.pos]):"—"]),
+      el("td",{},[player&&player.team?player.team:"—"]),
+      el("td",{},[team?team.name+(team.isUser?" (You)":""):"—"]),
+      el("td",{class:"tabular"},["$"+(pick.price||0)])
+    ]));
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  container.appendChild(wrap);
+}
+
+function renderAuctionRail(){
+  var rail = el("div",{class:"rail"});
+  var nom = state.auction.nomination;
+  var userTeam = state.teams.find(function(t){ return t.isUser; });
+
+  var recCard = el("div",{class:"card card-pad"});
+  recCard.appendChild(el("div",{class:"eyebrow"},["Suggested bid"]));
+  if(!nom){
+    recCard.appendChild(el("div",{class:"empty-state"},["Nominate a player to see a suggested max bid."]));
+  } else {
+    var player = playerById(nom.playerId);
+    var suggested = auctionSuggestedBid(player);
+    var yourMax = auctionMaxBid(userTeam.index);
+    recCard.appendChild(el("h3",{style:"font-size:16px;margin-bottom:10px;"},[player.name]));
+    recCard.appendChild(el("div",{class:"stat-pill", style:"margin-bottom:10px;"},[
+      el("div",{class:"n"},["$"+Math.min(suggested, yourMax)]),
+      el("div",{class:"l"},["Suggested bid"])
+    ]));
+    recCard.appendChild(el("div",{class:"legend-note"},[
+      "Based on remaining league budget spread across open roster spots, weighted by how this player ranks within "+player.pos+" among what's left. Your hard cap right now is $"+yourMax+" (keeps $1 free for every other open roster spot)."
+    ]));
+  }
+  rail.appendChild(recCard);
+
+  var budgetCard = el("div",{class:"card card-pad"});
+  budgetCard.appendChild(el("div",{class:"eyebrow"},["Team budgets"]));
+  var needGrid = el("div",{class:"need-grid"});
+  state.teams.slice().sort(function(a,b){ return state.auction.budgets[b.index]-state.auction.budgets[a.index]; }).forEach(function(t){
+    needGrid.appendChild(el("div",{class:"need-row"},[
+      el("span",{class:"who", style:"flex:1;font-weight:"+(t.isUser?"800":"600")+";"},[t.name+(t.isUser?" (You)":"")]),
+      el("span",{class:"count tabular"},["$"+state.auction.budgets[t.index]])
+    ]));
+  });
+  budgetCard.appendChild(needGrid);
+  rail.appendChild(budgetCard);
+
+  var rosterCard = el("div",{class:"card card-pad"});
+  rosterCard.appendChild(el("div",{class:"eyebrow"},["Your Roster"]));
+  rosterCard.appendChild(el("h3",{style:"font-size:16px;margin-bottom:10px;"},[userTeam.name]));
+  var slots = computeTeamRoster(userTeam.index);
+  var mini = el("div",{class:"roster-mini"});
+  slots.forEach(function(s){
+    mini.appendChild(el("div",{class:"roster-mini-row"+(s.player?"":" open")},[
+      el("span",{class:"slot"},[s.type]),
+      el("span",{class:"who"},[s.player ? s.player.name : "— open —"])
+    ]));
+  });
+  rosterCard.appendChild(mini);
+  rail.appendChild(rosterCard);
+
+  return rail;
+}
+
 function renderRail(){
   var rail = el("div",{class:"rail"});
   var pick = currentPick();
@@ -2059,6 +2418,9 @@ document.getElementById("btnNewDraft").addEventListener("click", function(){
   saveState();
   renderApp();
 });
+
+document.getElementById("btnTheme").addEventListener("click", cycleTheme);
+document.getElementById("btnThemeFloat").addEventListener("click", cycleTheme);
 
 (function(){
   var toggle = document.getElementById("btnOverflowToggle");
