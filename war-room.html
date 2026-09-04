@@ -873,7 +873,7 @@ function recommendationsForTeam(teamIndex, limit){
     }
 
     var valueScore = 0;
-    if(p.adp){ valueScore = clamp((p.adp - overall) / 12, -1, 1); }
+    if(p.adp){ valueScore = clamp((overall - p.adp) / 12, -1, 1); }
 
     var utilBonus = p.utilization != null ? clamp((p.utilization - 50) / 50, -1, 1) : 0;
 
@@ -893,8 +893,8 @@ function recommendationsForTeam(teamIndex, limit){
       if(openTypes[p.pos]) tags.push({t:"Fills open "+p.pos, cls:""});
       else if(openTypes.FLEX && FLEX_ELIGIBLE.indexOf(p.pos)>-1) tags.push({t:"Fills FLEX", cls:""});
     }
-    if(p.adp && (p.adp - overall) >= 6) tags.push({t:"Value · ADP "+Math.round(p.adp), cls:"tag-value"});
-    if(p.adp && (overall - p.adp) >= 8) tags.push({t:"Reach vs ADP "+Math.round(p.adp), cls:"tag-cliff"});
+    if(p.adp && (overall - p.adp) >= 8) tags.push({t:"Value · fell past ADP "+Math.round(p.adp), cls:"tag-value"});
+    if(p.adp && (p.adp - overall) >= 6) tags.push({t:"Reach vs ADP "+Math.round(p.adp), cls:"tag-cliff"});
     if(cliffSoon) tags.push({t:p.pos+" cliff — "+(posAvailCount[p.pos]||0)+" left", cls:"tag-cliff"});
     if(p.utilization != null && p.utilization >= 85) tags.push({t:"High usage (Util "+Math.round(p.utilization)+")", cls:"tag-value"});
     else if(p.utilization != null && p.utilization <= 30) tags.push({t:"Low usage (Util "+Math.round(p.utilization)+")", cls:"tag-cliff"});
@@ -1876,7 +1876,7 @@ function renderPlayerPool(container){
         tbody.appendChild(el("tr",{class:"tier-row"},[el("td",{colspan:"10"},[label])]));
         lastTierKey = tierKey;
       }
-      var delta = (p.adp && overall) ? Math.round(p.adp - overall) : null;
+      var delta = (p.adp && overall) ? Math.round(overall - p.adp) : null;
       var deltaCell;
       if(delta === null) deltaCell = el("td",{class:"tabular delta-zero"},["—"]);
       else if(delta > 0) deltaCell = el("td",{class:"tabular delta-pos"},["+"+delta]);
