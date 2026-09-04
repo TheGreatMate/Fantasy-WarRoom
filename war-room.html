@@ -1851,16 +1851,35 @@ function pollSleeperDraft(){
       return;
     }
     state.sleeperSyncError = null;
-    var applied = state.draft.picks.length;
-    if(picks.length <= applied) { renderTopbar(); return; }
-    var newPicks = picks.slice(applied).sort(function(a,b){ return a.pick_no - b.pick_no; });
+    var appliedOveralls = {};
+    state.draft.picks.forEach(function(p){ appliedOveralls[p.overall] = true; });
+    // Sleeper's pick_no is the true 1-indexed slot in the draft (keepers included, wherever
+    // their round/slot actually falls) — place each pick there directly rather than just
+    // appending to our own running counter, since keeper picks arrive out of order and can
+    // land dozens of slots ahead of whatever's currently live.
+    var newPicks = picks.filter(function(sp){ return sp.pick_no && !appliedOveralls[sp.pick_no]; })
+      .sort(function(a,b){ return a.pick_no - b.pick_no; });
+    if(!newPicks.length){ renderTopbar(); return; }
     var before = state.draft.picks.length;
     newPicks.forEach(function(sp){
-      if(!currentPick()) return;
+      var orderEntry = state.draft.order[sp.pick_no - 1];
+      if(!orderEntry) return;
       var player = matchOrCreatePlayerFromSleeperPick(sp);
-      var teamIndex = clamp((sp.draft_slot||1) - 1, 0, state.teams.length - 1);
-      makePick(player.id, teamIndex, sp.is_keeper === true);
+      if(!player || player.drafted) return;
+      player.drafted = true; player.offBoard = false; player.draftedOverall = orderEntry.overall;
+      state.draft.picks.push({
+        overall: orderEntry.overall, round: orderEntry.round, pickInRound: orderEntry.pickInRound,
+        teamIndex: orderEntry.teamIndex, playerId: player.id, isKeeper: sp.is_keeper === true
+      });
     });
+    // The next live pick is the first slot in true draft order with nothing recorded yet —
+    // pre-filled keeper slots further ahead don't move the clock past still-open earlier picks.
+    var filled = {};
+    state.draft.picks.forEach(function(p){ filled[p.overall] = true; });
+    var idx = 0;
+    while(idx < state.draft.order.length && filled[state.draft.order[idx].overall]) idx++;
+    state.draft.currentIndex = idx;
+
     if(state.draft.picks.length === before){
       // nothing applied even though Sleeper reported new picks — avoid a silent stall
       state.sleeperSyncError = "Sync stalled on an unexpected pick — try Stop Sync and restart if this persists.";
@@ -1902,6 +1921,7 @@ function startLiveSleeperDraft(){
       var numTeams = (draftObj.settings && draftObj.settings.teams) || lg.numTeams;
       lg.numTeams = numTeams;
       lg.draftType = draftObj.type === "linear" ? "linear" : "snake";
+      lg.trr = !!(draftObj.settings && draftObj.settings.reversal_round > 0);
       lg._teamNames = [];
       lg._teamSleeperUserIds = [];
       for(var s=1; s<=numTeams; s++){
