@@ -138,7 +138,7 @@ button:active{transform:scale(.97);}
 .overflow-btn{width:34px;height:34px;padding:0;justify-content:center;border-radius:50%;font-size:18px;line-height:1;}
 .overflow-menu{
   position:absolute; top:calc(100% + 8px); right:0; z-index:50; min-width:190px;
-  background:var(--glass-bg); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+  background:var(--surface); isolation:isolate;
   border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-lg); padding:6px; gap:2px;
 }
 .overflow-menu:not([hidden]){display:flex; flex-direction:column;}
